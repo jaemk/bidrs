@@ -2,6 +2,7 @@
 
 import os
 import sys
+import subprocess
 
 from collections import namedtuple
 from datetime import datetime
@@ -103,12 +104,23 @@ def search_for_migrations():
 
 
 def run_migration(migration_file, up_down):
-    os.system('sudo -u {projuser} psql -U {pguser} -d {dbname} -f {path}'.format(
-            projuser=PROJ_NAME,
-            pguser=PROJ_NAME,
-            dbname=PROJ_NAME,
-            path=migration_file.up_path if up_down == 'up' else migration_file.down_path,
-        ))
+    command = subprocess.run(['sudo', '-u', PROJ_NAME, 'psql', '-U',
+                    PROJ_NAME, '-d', PROJ_NAME, '-f',
+                    migration_file.up_path if up_down == 'up'
+                    else migration_file.down_path], check=True,
+                    stdout=subprocess.PIPE, stderr=subprocess.PIPE)
+    print('{}'.format(command.stdout.decode('utf-8')))
+    if command.stderr:
+        print('\n ** Woops, something\'s not right...')
+        print(command.stderr.decode('utf-8'))
+        return False
+    return True
+    #os.system('sudo -u {projuser} psql -U {pguser} -d {dbname} -f {path}'.format(
+    #        projuser=PROJ_NAME,
+    #        pguser=PROJ_NAME,
+    #        dbname=PROJ_NAME,
+    #        path=migration_file.up_path if up_down == 'up' else migration_file.down_path,
+    #    ))
 
 
 def update_meta(meta, mig, up_down):
@@ -166,17 +178,19 @@ def apply_next(direction, meta, available):
         if up_next_index < len(available):
             # call it
             mig = available[up_next_index]
-            run_migration(mig, 'up')
-            meta = update_meta(meta, mig, 'up')
-            print('** Moved up to:\n{}'.format(shorten(meta[-1])))
+            check = run_migration(mig, 'up')
+            if check:
+                meta = update_meta(meta, mig, 'up')
+                print('** Moved up to:\n{}'.format(shorten(meta[-1])))
         else:
             print('**** Already at latest migration ****')
     else:
         if down_next_index is not None:
             mig = available[down_next_index]
-            run_migration(mig, 'down')
-            meta = update_meta(meta, mig, 'down')
-            print('** Moved down to:\n{}'.format(shorten(meta[-1])))
+            check = run_migration(mig, 'down')
+            if check:
+                meta = update_meta(meta, mig, 'down')
+                print('** Moved down to:\n{}'.format(shorten(meta[-1])))
         else:
             print('**** No migrations to move down from ****')
     return meta
@@ -240,7 +254,9 @@ def rollback_to(roll_to_index, meta, available):
         avail_index = find_available_index(path, available)
         if avail_index:
             mig = available[avail_index]
-            run_migration(mig, 'down')
+            check = run_migration(mig, 'down')
+            if not check:
+                return
             meta = update_meta(meta, mig, 'down')
             print('** Moved down to:\n{}'.format(shorten(meta[-1])))
     return meta
@@ -257,16 +273,20 @@ def replay_to(path, meta, available):
         head = meta[-1]
 
 
-#def move_to(mig_id, meta, available):
-#    applied_index = find_applied_index(mig_id, meta[1:])
-#    if applied_index >= 0:
-#        # target is in our applied history
-#        # rollback
-#    else:
-#        # target is outside of applied history
-#        # need to look in available migrations
-#    #cur_index = find_current_available_index(meta, available)
-#    #target_index = find_by_idname(mig_id, available)
+def find_available_index_by_partial(partial_path, available):
+    for i, mig in enumerate(available):
+        if mig.up_path.startswith(mig.up_path) or mig.down_path.startswith(mig.down_path):
+            return i
+
+def force_single(mig_id, up_down, meta, available):
+    index = find_available_index_by_partial(mig_id, available)
+    if index is not None:
+        mig = available[index]
+        check = run_migration(mig, up_down)
+        if check:
+            meta = update_meta(meta, mig, 'up')
+            print('** Moved up to:\n{}'.format(shorten(meta[-1])))
+    return meta
 
 
 def run(args, meta):
@@ -305,15 +325,15 @@ def run(args, meta):
         if ans == 'y':
             meta = clear_meta(meta)
             show(meta, available)
-    #else:
-    #    # TODO: move to arbitrary id-name `1.idname`
-    #    try:
-    #        n, name = arg.split('.')
-    #        _ = int(n)
-    #    except ValueError:
-    #        print(' ** Specify an id formatted as `1.idname` ')
-    #        return
-    #    #move_to(arg.lower(), meta, available)
+    elif arg == '--run':
+        try:
+            up_down, n, name = args[1].split('.')
+            _ = int(n)
+        except ValueError:
+            print(' ** Make sure input follows: `--run up.1.migname` ')
+            return
+        meta = force_single(arg.lower(), up_down, meta, available)
+        show(meta, available)
 
 
 if __name__ == '__main__':

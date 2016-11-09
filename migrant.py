@@ -1,4 +1,4 @@
-#!/usr/bin/python3
+#!/usr/local/bin/python3
 
 import os
 import sys
@@ -109,18 +109,15 @@ def run_migration(migration_file, up_down):
                     migration_file.up_path if up_down == 'up'
                     else migration_file.down_path], check=True,
                     stdout=subprocess.PIPE, stderr=subprocess.PIPE)
-    print('{}'.format(command.stdout.decode('utf-8')))
-    if command.stderr:
-        print('\n ** Woops, something\'s not right...')
-        print(command.stderr.decode('utf-8'))
-        return False
+    stdout = command.stdout.decode('utf-8')
+    stderr = command.stderr.decode('utf-8')
+    print('{}'.format(stdout))
+    if stderr:
+        if 'ERROR:' in stderr.split(' '):
+            print('\n ** Woops, something\'s not right...')
+            print(command.stderr.decode('utf-8'))
+            return False
     return True
-    #os.system('sudo -u {projuser} psql -U {pguser} -d {dbname} -f {path}'.format(
-    #        projuser=PROJ_NAME,
-    #        pguser=PROJ_NAME,
-    #        dbname=PROJ_NAME,
-    #        path=migration_file.up_path if up_down == 'up' else migration_file.down_path,
-    #    ))
 
 
 def update_meta(meta, mig, up_down):
@@ -283,9 +280,8 @@ def force_single(mig_id, up_down, meta, available):
     if index is not None:
         mig = available[index]
         check = run_migration(mig, up_down)
-        if check:
-            meta = update_meta(meta, mig, 'up')
-            print('** Moved up to:\n{}'.format(shorten(meta[-1])))
+        meta = update_meta(meta, mig, up_down)
+        print('** Moved to:\n{}'.format(shorten(meta[-1])))
     return meta
 
 
@@ -297,6 +293,8 @@ def run(args, meta):
     arg = args[0]
     if arg == '--help':
         print(HELP)
+    elif arg == '--shell':
+        subprocess.run(['sudo', '-u', PROJ_NAME, 'psql'])
     elif arg in ['--up', '--down', '-u', '-d']:
         _dir = {'--up': 'up', '--down': 'down', '-u': 'up', '-d': 'down'}[arg]
         meta = apply_next(_dir, meta, available)

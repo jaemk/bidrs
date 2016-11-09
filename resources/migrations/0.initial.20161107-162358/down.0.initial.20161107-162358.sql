@@ -1,3 +1,4 @@
+drop function notify_trigger() cascade;
 drop table bid;
 drop table profile;
 drop table item;

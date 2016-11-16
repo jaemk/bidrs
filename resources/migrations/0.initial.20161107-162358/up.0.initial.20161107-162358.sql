@@ -8,9 +8,11 @@ create table biddy_user (
 create unique index on biddy_user (uuid_);
 
 create table organization (
-    id    serial PRIMARY KEY,
-    name  varchar(255) UNIQUE NOT NULL,
-    extra json
+    id            serial PRIMARY KEY,
+    name          varchar(255) UNIQUE NOT NULL,
+    extra         json,
+    date_created  timestamp WITH TIME ZONE NOT NULL DEFAULT NOW(),
+    date_modified timestamp WITH TIME ZONE NOT NULL DEFAULT NOW()
 );
 
 create table bidder (
@@ -25,10 +27,12 @@ create table item (
     organization_id  integer NOT NULL REFERENCES "organization" ("id"),
     owning_bidder_id integer REFERENCES "bidder" ("id"),
     is_goal          boolean DEFAULT FALSE,
-    title            VARCHAR(255),
+    title            varchar(255),
     description      text,
     value            bigint,
-    min_bid          bigint
+    min_bid          bigint,
+    date_created     timestamp WITH TIME ZONE NOT NULL DEFAULT NOW(),
+    date_modified    timestamp WITH TIME ZONE NOT NULL DEFAULT NOW()
 );
 create index on item ((lower(title)));
 
@@ -36,7 +40,7 @@ create table profile (
     id            serial PRIMARY KEY,
     user_id       integer NOT NULL UNIQUE REFERENCES "biddy_user" ("id") ON DELETE CASCADE,
     bidder_id     integer REFERENCES "bidder" ("id"),
-    level         integer NOT NULL CHECK (level >= 0),
+    level_        integer NOT NULL CHECK (level_ >= 0),
     is_primary    boolean DEFAULT FALSE,
     name          varchar(255),
     phone_cc      varchar(3),

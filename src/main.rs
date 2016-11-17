@@ -1,3 +1,4 @@
+#[macro_use]
 extern crate biddy;
 extern crate postgres;
 extern crate chrono;
@@ -29,7 +30,7 @@ pub fn main() {
     let arg = env::args().nth(1).unwrap_or("select".to_string());
 
     let conn = Connection::connect("postgresql://biddy:biddy@localhost", TlsMode::None).unwrap();
-    println!("connected");
+    println!("Connected to db!");
 
     // user actions
     if arg == "user-select" {
@@ -47,16 +48,8 @@ pub fn main() {
         println!("{:?}", user);
     } else if arg == "user-insert" {
         let username = env::args().nth(2).unwrap_or("james".to_string());
-        let ins = biddy::sql::insert_user(conn, &username);
-        match ins {
-            Err(dberr) => {
-                match dberr {
-                    postgres::error::Error::Db(err) => println!("{:?}", err.detail),
-                    _ => (),
-                }
-            },
-            _ => println!("{:?}", ins),
-        }
+        let ins = biddy::sql::insert_user(conn, username);
+        println!("{:?}", ins);
     }
 
     // org actions
@@ -83,16 +76,8 @@ pub fn main() {
             phone: "5551239876".to_string(),
             address: "123 nut drive".to_string(),
         };
-        let ins = sql::insert_org(conn, &name, &extra.to_json());
-        match ins {
-            Err(dberr) => {
-                match dberr {
-                    postgres::error::Error::Db(err) => println!("{:?}", err.detail),
-                    _ => (),
-                }
-            }
-            _ => println!("{:?}", ins),
-        }
+        let ins = sql::insert_org(conn, name, extra.to_json());
+        println!("{:?}", ins);
     }
 
     // bidder actions
@@ -115,7 +100,7 @@ pub fn main() {
         println!("{:?}", sql::select_bidder_latest(&conn));
     } else if arg == "bidder-insert" {
         let org_id = env::args().nth(2).unwrap_or("".to_string()).parse::<i32>().unwrap_or(1);
-        let ins = sql::insert_bidder(conn, &org_id);
+        let ins = sql::insert_bidder(conn, org_id);
         println!("{:?}", ins);
     }
 
@@ -127,8 +112,8 @@ pub fn main() {
         }
     } else if arg == "item-insert" {
         let org_id = env::args().nth(2).unwrap_or("".to_string()).parse::<i32>().unwrap_or(1);
-        let ins = sql::insert_item(conn, &org_id, &false, &"item1".to_string(),
-                                   &"item1-desc".to_string(), &2000_0000i64, &100_0000i64);
+        let ins = sql::insert_item(conn, org_id, false, "item1".to_string(),
+                                   "item1-desc".to_string(), 2000_0000i64, 100_0000i64);
         println!("{:?}", ins);
     }
 }

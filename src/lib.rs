@@ -38,7 +38,9 @@ macro_rules! try_insert_to_model {
                 }
             }
             Err(postgres::error::Error::Db(err)) => {
-                Err(err.detail.unwrap_or("no details".to_string()))
+                let message = err.message.to_string();
+                Err(err.detail.unwrap_or("no details".to_string()) + " | " +
+                    message.as_str())
             }
             _ => Err("Conversion or IO error".to_string())
         }

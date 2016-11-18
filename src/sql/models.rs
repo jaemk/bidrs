@@ -28,7 +28,7 @@ impl User {
 pub struct Organization {
     pub id: i32,
     pub name: String,
-    pub extra: rustc_serialize::json::Json,
+    pub extra: Option<rustc_serialize::json::Json>,
     pub date_created: chrono::DateTime<chrono::UTC>,
     pub date_modified: chrono::DateTime<chrono::UTC>,
 }
@@ -91,3 +91,54 @@ impl Item {
         }
     }
 }
+
+#[derive(Debug)]
+pub struct Profile {
+    pub id: i32,
+    pub user_id: i32,
+    pub bidder_id: Option<i32>,
+    pub level: i32,
+    pub is_primary: bool,
+    pub name: String,
+    pub phone_cc: Option<String>,
+    pub phone_number: Option<String>,
+    pub phone_ext: Option<String>,
+    pub email: String,
+    pub cc_info: Option<rustc_serialize::json::Json>,
+    pub extra: Option<rustc_serialize::json::Json>,
+    pub date_created: chrono::DateTime<chrono::UTC>,
+    pub date_modified: chrono::DateTime<chrono::UTC>,
+}
+impl Profile {
+    pub fn from_row(row: postgres::rows::Row) -> Profile {
+        Profile {
+            id: row.get(0), user_id: row.get(1),
+            bidder_id: row.get(2), level: row.get(3),
+            is_primary: row.get(4), name: row.get(5),
+            phone_cc: row.get(6), phone_number: row.get(7),
+            phone_ext: row.get(8), email: row.get(9),
+            cc_info: row.get(10), extra: row.get(11),
+            date_created: row.get(12), date_modified: row.get(13),
+        }
+    }
+}
+
+#[derive(Debug)]
+pub struct Bid {
+    pub id: i32,
+    pub bidder_id: i32,
+    pub item_id: i32,
+    pub amount: i64,
+    pub date_created: chrono::DateTime<chrono::UTC>,
+    pub date_modified: chrono::DateTime<chrono::UTC>,
+}
+impl Bid {
+    pub fn from_row(row: postgres::rows::Row) -> Bid {
+        Bid {
+            id: row.get(0), bidder_id: row.get(1),
+            item_id: row.get(2), amount: row.get(3),
+            date_created: row.get(4), date_modified: row.get(5),
+        }
+    }
+}
+

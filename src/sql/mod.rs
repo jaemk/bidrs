@@ -11,6 +11,7 @@ pub mod models;
 use self::models::{
     User, Organization,
     Bidder, Item,
+    Profile, Bid,
 };
 
 // User related queries
@@ -56,7 +57,7 @@ pub fn select_orgs_all(conn: &Connection) -> Vec<Organization> {
     let qs = "select id, name, extra, date_created, date_modified from organization";
     query_coll!(conn.query(qs, &[]), Organization)
 }
-pub fn insert_org(conn: Connection, name: String, extra: json::Json) -> Result<Organization, String> {
+pub fn insert_org(conn: Connection, name: String, extra: Option<json::Json>) -> Result<Organization, String> {
     let qs = "insert into organization (name, extra) values ($1, $2) \
               returning id, date_created, date_modified";
     try_insert_to_model!(conn.query(qs, &[&name, &extra]) ;
@@ -105,7 +106,7 @@ pub fn select_items_all(conn: &Connection) -> Vec<Item> {
 }
 pub fn insert_item(conn: Connection, org_id: i32, is_goal: bool,
                    title: String, desc: String, value: i64, min_bid: i64)
-    -> Result<Item, String> {
+                   -> Result<Item, String> {
     let qs = "insert into item (organization_id, is_goal, title, description, value, min_bid) \
               values ($1, $2, $3, $4, $5, $6) \
               returning id, owning_bidder_id, date_created, date_modified";
@@ -116,3 +117,51 @@ pub fn insert_item(conn: Connection, org_id: i32, is_goal: bool,
                          description: desc, value: value, min_bid: min_bid)
 }
 
+// Profile related queries
+//
+pub fn select_profiles_all(conn: &Connection) -> Vec<Profile> {
+    let qs = "select id, user_id, bidder_id, level_, is_primary, name, \
+              phone_cc, phone_number, phone_ext, email, cc_info, extra, \
+              date_created, date_modified \
+              from profile";
+    query_coll!(conn.query(qs, &[]), Profile)
+}
+pub fn insert_profile(conn: Connection, user_id: i32, bidder_id: Option<i32>, level: i32,
+                      is_primary: bool, name: String, phone_cc: Option<String>,
+                      phone_number: Option<String>, phone_ext: Option<String>,
+                      email: String, cc_info: Option<json::Json>, extra: Option<json::Json>)
+                      -> Result<Profile, String> {
+    let qs = "insert into profile (user_id, bidder_id, level_, is_primary, name, \
+              phone_cc, phone_number, phone_ext, email, cc_info, extra) values \
+              ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11) \
+              returning id, date_created, date_modified";
+    try_insert_to_model!(conn.query(qs, &[&user_id, &bidder_id, &level, &is_primary,
+                                          &name, &phone_cc, &phone_number, &phone_ext,
+                                          &email, &cc_info, &extra]) ;
+                         Profile ;
+                         id: 0, date_created: 1, date_modified: 2 ;
+                         user_id: user_id, bidder_id: bidder_id, level: level,
+                         is_primary: is_primary, name: name, phone_cc: phone_cc,
+                         phone_number: phone_number, phone_ext: phone_ext,
+                         email: email, cc_info: cc_info, extra: extra)
+}
+
+// Bid related queries
+//
+pub fn select_bids_all(conn: &Connection) -> Vec<Bid> {
+    let qs = "select id, bidder_id, item_id, amount, date_created, date_modified from bid";
+    query_coll!(conn.query(qs, &[]), Bid)
+}
+pub fn select_bids_by_item(conn: &Connection, item_id: &i32) -> Vec<Bid> {
+    let qs = "select id, bidder_id, item_id, amount, date_created, date_modified \
+              from bid where item_id = $1";
+    query_coll!(conn.query(qs, &[item_id]), Bid)
+}
+pub fn insert_bid(conn: Connection, bidder_id: i32, item_id: i32, amount: i64) -> Result<Bid, String> {
+    let qs = "insert into bid (bidder_id, item_id, amount) values ($1, $2, $3) \
+              returning id, date_created, date_modified";
+    try_insert_to_model!(conn.query(qs, &[&bidder_id, &item_id, &amount]) ;
+                         Bid ;
+                         id: 0, date_created: 1, date_modified: 2 ;
+                         bidder_id: bidder_id, item_id: item_id, amount: amount)
+}

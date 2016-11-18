@@ -56,8 +56,8 @@ create index on profile ((lower(email)));
 
 create table bid (
     id            serial PRIMARY KEY,
-    bidder_id     integer REFERENCES "bidder" ("id"),
-    item_id       integer REFERENCES "item" ("id"),
+    bidder_id     integer NOT NULL REFERENCES "bidder" ("id"),
+    item_id       integer NOT NULL REFERENCES "item" ("id"),
     amount        bigint NOT NULL,
     date_created  timestamp WITH TIME ZONE NOT NULL DEFAULT NOW(),
     date_modified timestamp WITH TIME ZONE NOT NULL DEFAULT NOW()

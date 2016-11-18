@@ -59,7 +59,10 @@ pub fn main() {
         let org = sql::select_org_by_id(&conn, &idint);
         println!("{:?}", org);
         match org {
-            Some(org) => println!("{:?}", org.extra.as_object()),
+            Some(org) => match org.extra {
+                Some(extra) => println!("{:?}", extra.as_object()),
+                _ => println!("no extra org info"),
+            },
             _ => (),
         };
     } else if arg == "org-select-all" {
@@ -76,7 +79,7 @@ pub fn main() {
             phone: "5551239876".to_string(),
             address: "123 nut drive".to_string(),
         };
-        let ins = sql::insert_org(conn, name, extra.to_json());
+        let ins = sql::insert_org(conn, name, Some(extra.to_json()));
         println!("{:?}", ins);
     }
 
@@ -115,5 +118,44 @@ pub fn main() {
         let ins = sql::insert_item(conn, org_id, false, "item1".to_string(),
                                    "item1-desc".to_string(), 2000_0000i64, 100_0000i64);
         println!("{:?}", ins);
+    }
+
+    // profile actions
+    else if arg == "profile-select-all" {
+        let profiles = sql::select_profiles_all(&conn);
+        for prof in profiles.iter() {
+            println!("{:?}", prof);
+        }
+    } else if arg == "profile-insert" {
+        let user_id = env::args().nth(2).unwrap_or("".to_string()).parse::<i32>().unwrap_or(1);
+        let bidder_id = env::args().nth(3).unwrap_or("".to_string()).parse::<i32>().unwrap_or(1);
+        let extra = Extra {
+            phone: "5551239876".to_string(),
+            address: "123 nut drive".to_string(),
+        };
+        let ins = sql::insert_profile(conn, user_id, Some(bidder_id), 1, false,
+                                      "james".to_string(), None, None, None,
+                                      "james@gmail.com".to_string(), None,
+                                      Some(extra.to_json()));
+        println!("{:?}", ins);
+    }
+
+    // bid actions
+    else if arg == "bid-select-all" {
+        let bids = sql::select_bids_all(&conn);
+        for bid in bids.iter() {
+            println!("{:?}", bid);
+        }
+    } else if arg == "bid-insert" {
+        let bidder_id = env::args().nth(2).unwrap_or("".to_string()).parse::<i32>().unwrap_or(1);
+        let item_id = env::args().nth(3).unwrap_or("".to_string()).parse::<i32>().unwrap_or(1);
+        let ins = sql::insert_bid(conn, bidder_id, item_id, 100_0000);
+        println!("{:?}", ins);
+    } else if arg == "bid-select-by-item" {
+        let item_id = env::args().nth(2).unwrap_or("".to_string()).parse::<i32>().unwrap_or(1);
+        let bids = sql::select_bids_by_item(&conn, &item_id);
+        for bid in bids.iter() {
+            println!("{:?}", bid);
+        }
     }
 }

@@ -3,6 +3,10 @@ extern crate uuid;
 extern crate rustc_serialize;
 extern crate postgres;
 
+use std::collections::BTreeMap;
+use rustc_serialize::json::{Json, ToJson};
+// TODO: impl ToJson to_json for an chrono containing structs.
+//       export them as strings in their debug format.
 
 #[derive(Debug, RustcEncodable, RustcDecodable)]
 pub struct User {
@@ -24,7 +28,7 @@ impl User {
     }
 }
 
-#[derive(Debug)]
+#[derive(Debug, RustcEncodable)]
 pub struct Organization {
     pub id: i32,
     pub name: String,
@@ -62,7 +66,7 @@ impl Bidder {
     }
 }
 
-#[derive(Debug)]
+#[derive(Debug, RustcEncodable)]
 pub struct Item {
     pub id: i32,
     pub organization_id: i32,   // *
@@ -92,7 +96,7 @@ impl Item {
     }
 }
 
-#[derive(Debug)]
+#[derive(Debug, RustcEncodable)]
 pub struct Profile {
     pub id: i32,
     pub user_id: i32,

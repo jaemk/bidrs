@@ -1,6 +1,5 @@
 
 use super::rouille;
-use super::rustc_serialize::json;
 use super::r2d2::{Config, Pool};
 use super::r2d2_postgres::{PostgresConnectionManager, TlsMode};
 
@@ -31,7 +30,7 @@ pub fn start() {
                 (GET) (/users) => {
                     println!("users");
                     let users = sql::select_users_all(&conn);
-                    rouille::Response::text(format!("{:?}", users))
+                    rouille::Response::json(&users)
                 },
 
                 (GET) (/user/latest) => {

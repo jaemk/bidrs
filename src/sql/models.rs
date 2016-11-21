@@ -4,7 +4,7 @@ extern crate rustc_serialize;
 extern crate postgres;
 
 
-#[derive(Debug)]
+#[derive(Debug, RustcEncodable, RustcDecodable)]
 pub struct User {
     pub id: i32,
     pub username: String,
@@ -44,7 +44,7 @@ impl Organization {
     }
 }
 
-#[derive(Debug)]
+#[derive(Debug, RustcEncodable, RustcDecodable)]
 pub struct Bidder {
     pub id: i32,
     pub organization_id: i32,   // *
@@ -123,7 +123,7 @@ impl Profile {
     }
 }
 
-#[derive(Debug)]
+#[derive(Debug, RustcEncodable, RustcDecodable)]
 pub struct Bid {
     pub id: i32,
     pub bidder_id: i32,

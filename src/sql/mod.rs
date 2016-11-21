@@ -1,10 +1,7 @@
-extern crate postgres;
-extern crate uuid;
-extern crate rustc_serialize;
 
-use self::postgres::{Connection};
-use self::uuid::Uuid;
-use self::rustc_serialize::json;
+use super::postgres::{self, Connection};
+use super::uuid::Uuid;
+use super::rustc_serialize::json;
 
 pub mod models;
 

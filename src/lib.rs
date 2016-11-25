@@ -18,4 +18,5 @@ pub mod macros;
 pub mod sql;
 pub mod cli;
 pub mod endpoints;
+pub mod sessions;
 pub mod service;

@@ -90,4 +90,32 @@ macro_rules! query_coll {
     }
 }
 
-
+#[macro_export]
+/// Try an expr, return early with a provided error or default
+/// to status::InternalServerError
+macro_rules! try_server_error {
+    ( $exp: expr ) => {
+        match $exp {
+            Ok(ok) => ok,
+            Err(_) => return Ok(Response::with(
+                    (status::InternalServerError, "unknown error")
+                    ))
+        }
+    };
+    ( $exp: expr, $msg: expr ) => {
+        match $exp {
+            Ok(ok) => ok,
+            Err(_) => return Ok(Response::with(
+                    (status::InternalServerError, $msg)
+                    ))
+        }
+    };
+    ( $exp: expr ; $error: expr ) => {
+        match $exp {
+            Ok(ok) => ok,
+            Err(err) => return Ok(Response::with(
+                    ($error, err.description())
+                    ))
+        }
+    }
+}

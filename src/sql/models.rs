@@ -1,7 +1,7 @@
-extern crate chrono;
-extern crate uuid;
-extern crate rustc_serialize;
-extern crate postgres;
+use super::super::chrono;
+use super::super::uuid;
+use super::super::rustc_serialize;
+use super::super::postgres;
 
 use std::collections::BTreeMap;
 use rustc_serialize::json::{Json, ToJson};

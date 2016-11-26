@@ -1,15 +1,17 @@
+use super::iron::prelude::*;
+use super::iron::status;
+use super::router::Router;
+use super::env_logger;
+use super::logger::Logger;
 
-use std::sync::Mutex;
+use super::rustc_serialize::json;
 
-use super::rouille;
 use super::r2d2::{Config, Pool};
 use super::r2d2_postgres::{PostgresConnectionManager, TlsMode};
 
 use super::sql;
-use super::endpoints;
-use super::sessions::SessionStore;
-
-use std::io;
+use super::handlers::{Handlers};
+use super::middleware::{InfoLog};
 
 pub fn start() {
     let db_url = "postgresql://biddy:biddy@localhost";
@@ -17,58 +19,21 @@ pub fn start() {
     let pool = Pool::new(Config::default(), db_mgr).expect("pool fail");
     println!("connected to db!");
 
-    let session_store = Mutex::new(SessionStore::new());
+    env_logger::init().unwrap();
+    let (log_before, log_after) = Logger::new(None);
 
-    rouille::start_server("localhost:3000", move |request| {
-        rouille::log(&request, io::stdout(), || {
-            if let Some(request) = request.remove_prefix("/resources") {
-                let response = rouille::match_assets(&request, "resources");
-                if response.success() {
-                    return response;
-                }
-            }
-            let conn = pool.clone().get().unwrap();
+    let handlers = Handlers::new(pool);
 
-            let store = session_store.lock().unwrap();
-            let sid = match request.header("SID") {
-                Some(id) => id,
-                None => {
-                    if request.url() != "/login" {
-                        return rouille::Response::redirect("/login")
-                    }
-                    "".to_string()
-                }
-            };
-            let session = store.get(&sid);
-            println!("session: {:?}", session);
+    let mut router = Router::new();
 
-            router!(request,
-                (GET) (/) => {
-                    println!("redirect");
-                    rouille::Response::redirect("/users")
-                },
+    router.get("/hello", handlers.hello, "hello");
+    router.get("/users", handlers.users, "users");
+    router.post("/msg", handlers.post_msg , "post_msg");
 
-                (GET) (/login) => {
-                    // authenticate
-                    //let sid = store.add(Session::new()),
-                    //let mut resp = rouille::Response::json(&something);
-                    //resp.headers.push(("SID".to_string(), sid));
-                    rouille::Response::text("please log in")
-                },
-                (GET) (/users) => {
-                    println!("users");
-                    let users = sql::select_users_all(&conn);
-                    let resp = rouille::Response::json(&users);
-                    resp
-                },
+    let mut chain = Chain::new(router);
+    chain.link_before(log_before);
+    chain.link_before(InfoLog);
+    chain.link_after(log_after);
 
-                (GET) (/users/latest) => {
-                    let latest = sql::select_user_latest(&conn).unwrap();
-                    rouille::Response::json(&latest)
-                },
-
-                _ => rouille::Response::empty_404()
-            )
-        })
-    });
+    Iron::new(chain).http("localhost:8000").unwrap();
 }

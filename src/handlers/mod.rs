@@ -1,3 +1,7 @@
+/// Handlers
+///
+/// Handlers manager & handler impls
+
 use std::io::Read;
 use std::collections::HashMap;
 use std::sync::{Arc, Mutex};
@@ -6,13 +10,18 @@ use super::r2d2::Pool;
 use super::r2d2_postgres::PostgresConnectionManager;
 use super::iron::{Handler, Request, Response, IronResult, status};
 use super::rustc_serialize::json;
+use super::uuid::Uuid;
 
 use super::sql;
-use super::sessions::{SessionStore, SessionKey};
+use super::sessions::{Session, SessionStore, SessionKey};
 
 type PgPool = Pool<PostgresConnectionManager>;
 type SStore = Arc<Mutex<SessionStore>>;
 
+#[derive(RustcEncodable, RustcDecodable)]
+struct Msg {
+    msg: String,
+}
 
 /// All handlers
 ///
@@ -27,7 +36,7 @@ impl Handlers {
         Handlers {
             hello: HelloHandler::new(),
             post_msg: PostMsgHandler::new(),
-            login: LoginHandler::new(),
+            login: LoginHandler::new(db_pool.clone(), s_store.clone()),
             users: UsersHandler::new(db_pool.clone()),
         }
     }
@@ -69,15 +78,41 @@ impl Handler for PostMsgHandler {
 
 /// Login
 ///
-pub struct LoginHandler;
+#[derive(RustcEncodable, RustcDecodable)]
+struct Auth {
+    username: String,
+    password: String,
+}
+#[derive(Debug, RustcEncodable, RustcDecodable)]
+struct Token {
+    token: String,
+}
+pub struct LoginHandler {
+    db_pool: PgPool,
+    s_store: SStore,
+}
 impl LoginHandler {
-    fn new() -> LoginHandler {
-        LoginHandler {}
+    fn new(db_pool: PgPool, s_store: SStore) -> LoginHandler {
+        LoginHandler {
+            db_pool: db_pool,
+            s_store: s_store,
+        }
     }
 }
 impl Handler for LoginHandler {
     fn handle(&self, request: &mut Request) -> IronResult<Response> {
-        Ok(Response::with((status::Ok, "Login!")))
+        let mut req_body = String::new();
+        request.body.read_to_string(&mut req_body).unwrap();
+        let auth: Auth = try_server_error!(json::decode(&req_body));
+        if auth.username != "admin" && auth.password != "admin" {
+            let msg = Msg { msg: "invalid credentials".to_string() };
+            return Ok(Response::with((status::Unauthorized, json::encode(&msg).unwrap())))
+        }
+        let uuid = Uuid::new_v4(); // in the future this should be the user's actual uuid
+        let new_sess = Session::new(&uuid);
+        let token = Token { token: new_sess.token.clone() };
+        self.s_store.lock().unwrap().add(new_sess);
+        Ok(Response::with((status::Ok, json::encode(&token).unwrap())))
     }
 }
 

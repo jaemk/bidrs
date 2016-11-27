@@ -10,6 +10,7 @@ rustc-serialize = "0.3"
 uuid = { version = "0.3", features = ["v4", "rustc-serialize"] }
 chrono = { version = "0.2", features = ["rustc-serialize"] }
 jsonwebtoken = "1"
+lazy_static = "0.1.*"
 
 r2d2 = "0.7"
 r2d2_postgres = "0.11"

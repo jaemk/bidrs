@@ -3,6 +3,8 @@ extern crate chrono;
 extern crate uuid;
 extern crate rustc_serialize;
 extern crate jsonwebtoken as jwt;
+#[macro_use]
+extern crate lazy_static;
 
 #[macro_use]
 extern crate r2d2;

@@ -1,11 +1,9 @@
 use super::super::chrono;
 use super::super::uuid;
-use super::super::rustc_serialize;
 use super::super::postgres;
+use super::super::rustc_serialize::json::{Json}; //, ToJson};
 
-use std::collections::BTreeMap;
-use rustc_serialize::json::{Json, ToJson};
-// TODO: impl ToJson to_json for an chrono containing structs.
+// TODO: impl ToJson to_json for any chrono containing structs.
 //       export them as strings in their debug format.
 
 #[derive(Debug, RustcEncodable, RustcDecodable)]
@@ -32,7 +30,7 @@ impl User {
 pub struct Organization {
     pub id: i32,
     pub name: String,
-    pub extra: Option<rustc_serialize::json::Json>,
+    pub extra: Option<Json>,
     pub date_created: chrono::DateTime<chrono::UTC>,
     pub date_modified: chrono::DateTime<chrono::UTC>,
 }
@@ -108,8 +106,8 @@ pub struct Profile {
     pub phone_number: Option<String>,
     pub phone_ext: Option<String>,
     pub email: String,
-    pub cc_info: Option<rustc_serialize::json::Json>,
-    pub extra: Option<rustc_serialize::json::Json>,
+    pub cc_info: Option<Json>,
+    pub extra: Option<Json>,
     pub date_created: chrono::DateTime<chrono::UTC>,
     pub date_modified: chrono::DateTime<chrono::UTC>,
 }

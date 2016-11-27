@@ -1,3 +1,6 @@
+/// SQL
+///
+/// Database functions & model re-exports
 
 use super::postgres::{self, Connection};
 use super::uuid::Uuid;

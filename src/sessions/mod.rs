@@ -1,5 +1,10 @@
+/// Sessions
+///
+/// Session & SessionStore impls
+/// SessionKey for insertion in iron's request.extensions typemap
+
 use std::collections::HashMap;
-use super::uuid;
+use super::uuid::Uuid;
 use super::chrono;
 use super::jwt::{encode, Header};
 use super::iron::typemap;
@@ -9,7 +14,9 @@ struct Claim {
     user_uuid: String,
 }
 
-static SECRET: &'static str = "secret-token-string-123";
+lazy_static! {
+    static ref SECRET: String = Uuid::new_v4().to_string();
+}
 
 fn generate_token(uuid: String) -> Result<String, String> {
     let claim = Claim { user_uuid: uuid };
@@ -27,13 +34,13 @@ impl typemap::Key for SessionKey {
 #[derive(Debug)]
 pub struct Session {
     pub token: String,
-    //user_uuid: uuid::Uuid,
+    //user_uuid: Uuid,
     //data: json::Json,
     pub stamp: chrono::DateTime<chrono::UTC>,
 }
 
 impl Session {
-    pub fn new(uuid: &uuid::Uuid) -> Session {
+    pub fn new(uuid: &Uuid) -> Session {
         let token = generate_token(uuid.to_string()).expect("token fail");
         Session {
             token: token,
@@ -67,9 +74,9 @@ impl SessionStore {
             None => None,
         }
     }
-    pub fn touch(&mut self, sid: &String) -> Result<(), ()> {
+    pub fn touch(&mut self, token: &String) -> Result<(), ()> {
         let &mut SessionStore(ref mut store) = self;
-        match store.get_mut(sid) {
+        match store.get_mut(token) {
             Some(mut sess) => {
                 sess.touch();
                 Ok(())

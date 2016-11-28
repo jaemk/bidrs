@@ -14,6 +14,7 @@ use self::models::{
     Profile, Bid,
 };
 
+
 // User related queries
 //
 pub fn select_user_by_id(conn: &Connection, user_id: &i32) -> Option<User> {
@@ -41,6 +42,7 @@ pub fn insert_user(conn: Connection, username: String) -> Result<User, String> {
                          username: username, uuid: uuid)
 }
 
+
 // Organization related queries
 //
 pub fn select_org_by_id(conn: &Connection, org_id: &i32) -> Option<Organization> {
@@ -65,6 +67,7 @@ pub fn insert_org(conn: Connection, name: String, extra: Option<json::Json>) -> 
                          id: 0, date_created: 1, date_modified: 2 ;
                          name: name, extra: extra)
 }
+
 
 // Bidder related queries
 //
@@ -117,6 +120,7 @@ pub fn insert_item(conn: Connection, org_id: i32, is_goal: bool,
                          description: desc, value: value, min_bid: min_bid)
 }
 
+
 // Profile related queries
 //
 pub fn select_profiles_all(conn: &Connection) -> Vec<Profile> {
@@ -145,6 +149,7 @@ pub fn insert_profile(conn: Connection, user_id: i32, bidder_id: Option<i32>, le
                          phone_number: phone_number, phone_ext: phone_ext,
                          email: email, cc_info: cc_info, extra: extra)
 }
+
 
 // Bid related queries
 //

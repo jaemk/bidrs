@@ -1,4 +1,5 @@
-/// Middleware
+/// Custom Middleware
+///
 
 use std::sync::{Arc, Mutex};
 
@@ -33,7 +34,7 @@ impl BeforeMiddleware for InfoLog {
 /// Session middleware handler to look for and insert the current
 /// session into the request.extensions typemap.
 /// This handler is intended to be returned from
-/// AroundMiddleware->SessionMiddleware
+/// SessionMiddleware (AroundMiddleware)
 struct SessionMiddlewareHandler<H: Handler> {
     store: SStore,
     handler: H,
@@ -58,6 +59,7 @@ impl<H: Handler> Handler for SessionMiddlewareHandler<H> {
         self.handler.handle(request)
     }
 }
+
 
 /// SessionMiddleware (AroundMiddleware) intended to check incoming
 /// requests for a session-token and reject any non token requests

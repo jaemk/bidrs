@@ -1,3 +1,8 @@
+/// Models
+///
+/// sql models mapping to database tables & impls to generate
+/// structs from rows
+
 use super::super::chrono;
 use super::super::uuid;
 use super::super::postgres;
@@ -26,6 +31,7 @@ impl User {
     }
 }
 
+
 #[derive(Debug, RustcEncodable)]
 pub struct Organization {
     pub id: i32,
@@ -46,6 +52,7 @@ impl Organization {
     }
 }
 
+
 #[derive(Debug, RustcEncodable, RustcDecodable)]
 pub struct Bidder {
     pub id: i32,
@@ -63,6 +70,7 @@ impl Bidder {
         }
     }
 }
+
 
 #[derive(Debug, RustcEncodable)]
 pub struct Item {
@@ -93,6 +101,7 @@ impl Item {
         }
     }
 }
+
 
 #[derive(Debug, RustcEncodable)]
 pub struct Profile {
@@ -125,6 +134,7 @@ impl Profile {
     }
 }
 
+
 #[derive(Debug, RustcEncodable, RustcDecodable)]
 pub struct Bid {
     pub id: i32,
@@ -143,4 +153,3 @@ impl Bid {
         }
     }
 }
-

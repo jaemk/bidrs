@@ -18,12 +18,15 @@ use super::sessions::{Session, SessionStore, SessionKey};
 type PgPool = Pool<PostgresConnectionManager>;
 type SStore = Arc<Mutex<SessionStore>>;
 
+
 #[derive(RustcEncodable, RustcDecodable)]
+/// Generic response message to be encoded as json
 struct Msg {
     msg: String,
 }
 
-/// All handlers
+
+/// General Handler Manager
 ///
 pub struct Handlers {
     pub hello: HelloHandler,
@@ -41,6 +44,7 @@ impl Handlers {
         }
     }
 }
+
 
 /// Hello
 ///
@@ -117,7 +121,7 @@ impl Handler for LoginHandler {
 }
 
 
-/// Users
+/// All Users
 ///
 pub struct UsersHandler {
     db_pool: PgPool,

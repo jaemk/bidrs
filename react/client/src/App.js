@@ -49,8 +49,8 @@ class App extends Component {
     }
     selectPath(path) {
         console.log('Select path: ' + path);
-        let rlen = this.context.router.length;
-        let current = this.context.router[rlen-1];
+        let rlen = this.context.router.routes.length;
+        let current = this.context.router.routes[rlen-1].path;
         if (path !== current) {
             this.context.router.push(path);
         }
@@ -63,8 +63,12 @@ class App extends Component {
             password: password,
         };
         axios.post('/login', data, this.state.axiosConfig)
-            .then((resp) => console.log(resp))
-            .catch((err) => console.log(err));
+            .then((resp) => {
+                console.log(resp);
+            })
+            .catch((err) => {
+                console.log(err);
+            });
         this.setState({
             authenicated: true,
         });

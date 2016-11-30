@@ -14,7 +14,8 @@ use super::super::rustc_serialize::json::{Json}; //, ToJson};
 #[derive(Debug, RustcEncodable, RustcDecodable)]
 pub struct User {
     pub id: i32,
-    pub username: String,
+    pub email: String,
+    pub salt: String,
     pub uuid: uuid::Uuid,
     pub date_created: chrono::DateTime<chrono::UTC>,
     pub date_modified: chrono::DateTime<chrono::UTC>,
@@ -23,10 +24,11 @@ impl User {
     pub fn from_row(row: postgres::rows::Row) -> User {
         User {
             id: row.get(0),
-            username: row.get(1),
-            uuid: row.get(2),
-            date_created: row.get(3),
-            date_modified: row.get(4),
+            email: row.get(1),
+            salt: row.get(2),
+            uuid: row.get(3),
+            date_created: row.get(4),
+            date_modified: row.get(5),
         }
     }
 }
@@ -114,7 +116,6 @@ pub struct Profile {
     pub phone_cc: Option<String>,
     pub phone_number: Option<String>,
     pub phone_ext: Option<String>,
-    pub email: String,
     pub cc_info: Option<Json>,
     pub extra: Option<Json>,
     pub date_created: chrono::DateTime<chrono::UTC>,
@@ -127,9 +128,9 @@ impl Profile {
             bidder_id: row.get(2), level: row.get(3),
             is_primary: row.get(4), name: row.get(5),
             phone_cc: row.get(6), phone_number: row.get(7),
-            phone_ext: row.get(8), email: row.get(9),
-            cc_info: row.get(10), extra: row.get(11),
-            date_created: row.get(12), date_modified: row.get(13),
+            phone_ext: row.get(8), cc_info: row.get(9),
+            extra: row.get(10), date_created: row.get(11),
+            date_modified: row.get(12),
         }
     }
 }

@@ -6,7 +6,6 @@ use std::sync::{Arc, Mutex};
 use super::iron::{Request, IronResult, IronError, Handler, Response, status};
 use super::iron::middleware::{BeforeMiddleware, AroundMiddleware};
 use super::iron::headers::Authorization;
-use super::iron::modifiers::RedirectRaw;
 
 use super::sessions::SessionStore;
 
@@ -44,16 +43,18 @@ impl<H: Handler> Handler for SessionMiddlewareHandler<H> {
         { // move to inner scope so store lock gets dropped before calling the given handle
             let mut store = self.store.lock().unwrap();
             let sess = match request.headers.get::<Authorization<String>>() {
-                Some(token) => match store.get_mut(&token) {
-                    Some(session) => Some(session),
-                    _ => None,
+                Some(token) => {
+                    store.check_delete(&token)
                 },
-                _ => None,
+                _ => false,
             };
-            println!("in around!");
-            let curr_path = request.url.path().iter().map(|p| p.to_string()).next().unwrap_or("".to_string());
-            if sess.is_none() && curr_path != "login" {
-                return Ok(Response::with((status::Unauthorized, "please login")))
+            if !sess {
+                let curr_path = request.url.path().iter()
+                                       .map(|p| p.to_string())
+                                       .next().unwrap_or("".to_string());
+                if curr_path != "login" {
+                    return Ok(Response::with((status::Unauthorized, "please login")))
+                }
             }
         }
         self.handler.handle(request)
@@ -62,7 +63,8 @@ impl<H: Handler> Handler for SessionMiddlewareHandler<H> {
 
 
 /// SessionMiddleware (AroundMiddleware) intended to check incoming
-/// requests for a session-token and reject any non token requests
+/// requests for a session-token and reject any non token or
+/// expired token requests
 pub struct SessionMiddleware {
     store: SStore,
 }

@@ -18,28 +18,33 @@ use self::models::{
 // User related queries
 //
 pub fn select_user_by_id(conn: &Connection, user_id: &i32) -> Option<User> {
-    let qs = "select id, username, uuid_, date_created, date_modified \
-              from biddy_user where id = $1";
+    let qs = "select id, email, salt, uuid_, date_created, date_modified \
+              from user_ where id = $1";
     query_or_none!(conn.query(qs, &[user_id]), User)
 }
+pub fn select_user_by_email(conn: &Connection, email: &String) -> Option<User> {
+    let qs = "select id, email, salt, uuid_, date_created, date_modified \
+              from user_ where email = $1";
+    query_or_none!(conn.query(qs, &[email]), User)
+}
 pub fn select_user_latest(conn: &Connection) -> Option<User> {
-    let qs = "select id, username, uuid_, date_created, date_modified \
-              from biddy_user order by date_created desc limit 1";
+    let qs = "select id, email, salt, uuid_, date_created, date_modified \
+              from user_ order by date_created desc limit 1";
     query_or_none!(conn.query(qs, &[]), User)
 }
 pub fn select_users_all(conn: &Connection) -> Vec<User> {
-    let qs = "select id, username, uuid_, date_created, date_modified \
-              from biddy_user";
+    let qs = "select id, email, salt, uuid_, date_created, date_modified \
+              from user_";
     query_coll!(conn.query(qs, &[]), User)
 }
-pub fn insert_user(conn: Connection, username: String) -> Result<User, String> {
-    let qs = "insert into biddy_user (username, uuid_) values ($1, $2) \
+pub fn insert_user(conn: Connection, email: String, salt: String) -> Result<User, String> {
+    let qs = "insert into user_ (email, salt, uuid_) values ($1, $2, $3) \
               returning id, date_created, date_modified";
     let uuid = Uuid::new_v4();
-    try_insert_to_model!(conn.query(qs, &[&username, &uuid]) ;
+    try_insert_to_model!(conn.query(qs, &[&email, &salt, &uuid]) ;
                          User ;
                          id: 0, date_created: 1, date_modified: 2 ;
-                         username: username, uuid: uuid)
+                         email: email, salt: salt, uuid: uuid)
 }
 
 
@@ -125,7 +130,7 @@ pub fn insert_item(conn: Connection, org_id: i32, is_goal: bool,
 //
 pub fn select_profiles_all(conn: &Connection) -> Vec<Profile> {
     let qs = "select id, user_id, bidder_id, level_, is_primary, name, \
-              phone_cc, phone_number, phone_ext, email, cc_info, extra, \
+              phone_cc, phone_number, phone_ext, cc_info, extra, \
               date_created, date_modified \
               from profile";
     query_coll!(conn.query(qs, &[]), Profile)
@@ -133,21 +138,21 @@ pub fn select_profiles_all(conn: &Connection) -> Vec<Profile> {
 pub fn insert_profile(conn: Connection, user_id: i32, bidder_id: Option<i32>, level: i32,
                       is_primary: bool, name: String, phone_cc: Option<String>,
                       phone_number: Option<String>, phone_ext: Option<String>,
-                      email: String, cc_info: Option<json::Json>, extra: Option<json::Json>)
+                      cc_info: Option<json::Json>, extra: Option<json::Json>)
                       -> Result<Profile, String> {
     let qs = "insert into profile (user_id, bidder_id, level_, is_primary, name, \
-              phone_cc, phone_number, phone_ext, email, cc_info, extra) values \
-              ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11) \
+              phone_cc, phone_number, phone_ext, cc_info, extra) values \
+              ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10) \
               returning id, date_created, date_modified";
     try_insert_to_model!(conn.query(qs, &[&user_id, &bidder_id, &level, &is_primary,
                                           &name, &phone_cc, &phone_number, &phone_ext,
-                                          &email, &cc_info, &extra]) ;
+                                          &cc_info, &extra]) ;
                          Profile ;
                          id: 0, date_created: 1, date_modified: 2 ;
                          user_id: user_id, bidder_id: bidder_id, level: level,
                          is_primary: is_primary, name: name, phone_cc: phone_cc,
                          phone_number: phone_number, phone_ext: phone_ext,
-                         email: email, cc_info: cc_info, extra: extra)
+                         cc_info: cc_info, extra: extra)
 }
 
 

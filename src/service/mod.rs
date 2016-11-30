@@ -24,7 +24,7 @@ pub fn start() {
     println!(">> Connected to db!");
 
     // setup session store access
-    let session_store = Arc::new(Mutex::new(SessionStore::new()));
+    let session_store = Arc::new(Mutex::new(SessionStore::new(20 * 60)));
     let session_middleware = SessionMiddleware::new(session_store.clone());
     println!(">> Session store created");
 
@@ -40,6 +40,7 @@ pub fn start() {
     router.get("/users", handlers.users, "users");
     router.post("/login", handlers.login, "login");
     router.post("/msg", handlers.post_msg , "post_msg");
+    router.get("/msg", handlers.get_msg, "get_msg");
 
     let mut chain = Chain::new(router);
     chain.link_before(log_before);          // general logger

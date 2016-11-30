@@ -3,13 +3,14 @@ import React, { Component } from 'react';
 import TextField from 'material-ui/TextField';
 import RaisedButton from 'material-ui/RaisedButton';
 import Paper from 'material-ui/Paper';
+import Subheader from 'material-ui/Subheader';
 
 
 class Login extends Component {
     constructor() {
         super();
         this.state = {
-            username: "",
+            email: "",
             password: "",
         };
 
@@ -17,7 +18,7 @@ class Login extends Component {
         this.logIn = this.logIn.bind(this);
     }
     logIn() {
-        this.props.logIn(this.state.username, this.state.password);
+        this.props.logIn(this.state.email, this.state.password);
     }
     handleInput(e, type) {
         let value = e.target.value;
@@ -28,10 +29,15 @@ class Login extends Component {
     render() {
         return (
             <Paper>
+                {this.props.message?
+                    <Subheader> {this.props.message} </Subheader>
+                    :
+                    <Subheader> Log in to --- App --- </Subheader>
+                }
                 <TextField
-                    floatingLabelText="Username"
-                    value={this.state.username}
-                    onChange={(e) => this.handleInput(e, 'username')}
+                    floatingLabelText="Email"
+                    value={this.state.email}
+                    onChange={(e) => this.handleInput(e, 'email')}
                 />
                 {' '}
                 <TextField

@@ -5,6 +5,7 @@ use super::postgres::{Connection, TlsMode};
 use super::rustc_serialize::json::{Json, ToJson};
 
 use super::sql;
+use super::auth;
 
 #[derive(RustcEncodable, RustcDecodable)]
 struct Extra {
@@ -47,8 +48,9 @@ pub fn consume(args: Vec<String>) {
         let user = sql::select_user_latest(&conn);
         println!("{:?}", user);
     } else if arg == "user-insert" {
-        let username = get_arg_or(&args, 1, "james");
-        let ins = sql::insert_user(conn, username);
+        let email = get_arg_or(&args, 1, "james");
+        let salt = auth::new_salt();
+        let ins = sql::insert_user(conn, email, salt);
         println!("{:?}", ins);
     }
 
@@ -135,8 +137,7 @@ pub fn consume(args: Vec<String>) {
         };
         let ins = sql::insert_profile(conn, user_id, Some(bidder_id), 1, false,
                                       "james".to_string(), None, None, None,
-                                      "james@gmail.com".to_string(), None,
-                                      Some(extra.to_json()));
+                                      None, Some(extra.to_json()));
         println!("{:?}", ins);
     }
 

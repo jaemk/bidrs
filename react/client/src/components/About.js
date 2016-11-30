@@ -1,6 +1,22 @@
 import React, { Component } from 'react';
 
+import RaisedButton from 'material-ui/RaisedButton';
+
 class About extends Component {
+    constructor() {
+        super();
+        this.state = {
+            msg: null,
+        };
+        this.click = this.click.bind(this);
+        this.handleResp = this.handleResp.bind(this);
+    }
+    handleResp(resp) {
+        this.setState({msg: resp.data.msg});
+    }
+    click() {
+        this.props.apiGet("/msg", this.handleResp);
+    }
     render() {
         return (
             <div>
@@ -10,6 +26,15 @@ class About extends Component {
                         :
                     ""
                 }
+                <RaisedButton
+                    label="try a get"
+                    onTouchTap={this.click}
+                />
+                <pre>
+                    { this.state.msg?
+                        this.state.msg : "No msg"
+                    }
+                </pre>
             </div>
         );
     }

@@ -1,11 +1,13 @@
-create table biddy_user (
+create table user_ (
     id            serial PRIMARY KEY,
-    username      varchar(255) UNIQUE NOT NULL,
+    email         text UNIQUE NOT NULL,
+    salt          text UNIQUE NOT NULL,
     uuid_         uuid UNIQUE NOT NULL,
     date_created  timestamp WITH TIME ZONE NOT NULL DEFAULT NOW(),
     date_modified timestamp WITH TIME ZONE NOT NULL DEFAULT NOW()
 );
-create unique index on biddy_user (uuid_);
+create unique index on user_ (uuid_);
+create unique index on user_ (email);
 
 create table organization (
     id            serial PRIMARY KEY,
@@ -17,7 +19,7 @@ create table organization (
 
 create table bidder (
     id              serial PRIMARY KEY,
-    organization_id integer NOT NULL UNIQUE REFERENCES "organization" ("id"),
+    organization_id integer NOT NULL REFERENCES "organization" ("id"),
     date_created    timestamp WITH TIME ZONE NOT NULL DEFAULT NOW(),
     date_modified   timestamp WITH TIME ZONE NOT NULL DEFAULT NOW()
 );
@@ -27,7 +29,7 @@ create table item (
     organization_id  integer NOT NULL REFERENCES "organization" ("id"),
     owning_bidder_id integer REFERENCES "bidder" ("id"),
     is_goal          boolean DEFAULT FALSE,
-    title            varchar(255),
+    title            text,
     description      text,
     value            bigint,
     min_bid          bigint,
@@ -38,21 +40,20 @@ create index on item ((lower(title)));
 
 create table profile (
     id            serial PRIMARY KEY,
-    user_id       integer NOT NULL UNIQUE REFERENCES "biddy_user" ("id") ON DELETE CASCADE,
+    user_id       integer NOT NULL UNIQUE REFERENCES "user_" ("id") ON DELETE CASCADE,
     bidder_id     integer REFERENCES "bidder" ("id"),
     level_        integer NOT NULL CHECK (level_ >= 0),
     is_primary    boolean DEFAULT FALSE,
-    name          varchar(255),
+    name          text,
     phone_cc      varchar(3),
     phone_number  varchar(10),
     phone_ext     varchar(4),
-    email         varchar(254),
     cc_info       json,
     extra         json,
     date_created  timestamp WITH TIME ZONE NOT NULL DEFAULT NOW(),
     date_modified timestamp WITH TIME ZONE NOT NULL DEFAULT NOW()
 );
-create index on profile ((lower(email)));
+create index on profile ((lower(name)));
 
 create table bid (
     id            serial PRIMARY KEY,

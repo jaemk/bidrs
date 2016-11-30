@@ -13,6 +13,7 @@ use super::rustc_serialize::json;
 use super::uuid::Uuid;
 
 use super::sql;
+use super::auth;
 use super::sessions::{Session, SessionStore, SessionKey};
 
 type PgPool = Pool<PostgresConnectionManager>;
@@ -33,12 +34,14 @@ pub struct Handlers {
     pub login: LoginHandler,
     pub users: UsersHandler,
     pub post_msg: PostMsgHandler,
+    pub get_msg: GetMsgHandler,
 }
 impl Handlers {
     pub fn new(db_pool: PgPool, s_store: SStore) -> Handlers {
         Handlers {
             hello: HelloHandler::new(),
             post_msg: PostMsgHandler::new(),
+            get_msg: GetMsgHandler::new(),
             login: LoginHandler::new(db_pool.clone(), s_store.clone()),
             users: UsersHandler::new(db_pool.clone()),
         }
@@ -80,11 +83,28 @@ impl Handler for PostMsgHandler {
 }
 
 
+/// Get msg handler
+///
+pub struct GetMsgHandler;
+impl GetMsgHandler {
+    fn new() -> GetMsgHandler {
+        GetMsgHandler {}
+    }
+}
+impl Handler for GetMsgHandler {
+    fn handle(&self, _: &mut Request) -> IronResult<Response> {
+        let mut msg = HashMap::new();
+        msg.insert("msg".to_string(), "hello!".to_string());
+        Ok(Response::with((status::Ok, json::encode(&msg).unwrap())))
+    }
+}
+
+
 /// Login
 ///
 #[derive(RustcEncodable, RustcDecodable)]
-struct Auth {
-    username: String,
+struct ApiAuth {
+    email: String,
     password: String,
 }
 #[derive(Debug, RustcEncodable, RustcDecodable)]
@@ -107,8 +127,13 @@ impl Handler for LoginHandler {
     fn handle(&self, request: &mut Request) -> IronResult<Response> {
         let mut req_body = String::new();
         request.body.read_to_string(&mut req_body).unwrap();
-        let auth: Auth = try_server_error!(json::decode(&req_body));
-        if auth.username != "admin" && auth.password != "admin" {
+        let auth: ApiAuth = try_server_error!(json::decode(&req_body));
+        let conn = self.db_pool.get().unwrap();
+        match sql::select_user_by_email(&conn, &auth.email) {
+            Some(user) => println!("found: {:?}", user),
+            _ => println!("couldn't find: {:?}", auth.email),
+        }
+        if auth.email != "admin" && auth.password != "admin" {
             let msg = Msg { msg: "invalid credentials".to_string() };
             return Ok(Response::with((status::Unauthorized, json::encode(&msg).unwrap())))
         }
@@ -116,6 +141,7 @@ impl Handler for LoginHandler {
         let new_sess = Session::new(&uuid);
         let token = Token { token: new_sess.token.clone() };
         self.s_store.lock().unwrap().add(new_sess);
+        println!("login, session-size: {:?}", self.s_store.lock().unwrap().len());
         Ok(Response::with((status::Ok, json::encode(&token).unwrap())))
     }
 }

@@ -1,7 +1,7 @@
-/// SQL
-///
-/// Database functions & model re-exports
-
+//! SQL
+//!
+//! Database functions & model re-exports
+//!
 use super::postgres::{self, Connection};
 use super::uuid::Uuid;
 use super::rustc_serialize::json;
@@ -18,33 +18,33 @@ use self::models::{
 // User related queries
 //
 pub fn select_user_by_id(conn: &Connection, user_id: &i32) -> Option<User> {
-    let qs = "select id, email, salt, uuid_, date_created, date_modified \
+    let qs = "select id, email, salt, password, uuid_, date_created, date_modified \
               from user_ where id = $1";
     query_or_none!(conn.query(qs, &[user_id]), User)
 }
 pub fn select_user_by_email(conn: &Connection, email: &String) -> Option<User> {
-    let qs = "select id, email, salt, uuid_, date_created, date_modified \
+    let qs = "select id, email, salt, password, uuid_, date_created, date_modified \
               from user_ where email = $1";
     query_or_none!(conn.query(qs, &[email]), User)
 }
 pub fn select_user_latest(conn: &Connection) -> Option<User> {
-    let qs = "select id, email, salt, uuid_, date_created, date_modified \
+    let qs = "select id, email, salt, password, uuid_, date_created, date_modified \
               from user_ order by date_created desc limit 1";
     query_or_none!(conn.query(qs, &[]), User)
 }
 pub fn select_users_all(conn: &Connection) -> Vec<User> {
-    let qs = "select id, email, salt, uuid_, date_created, date_modified \
+    let qs = "select id, email, salt, password, uuid_, date_created, date_modified \
               from user_";
     query_coll!(conn.query(qs, &[]), User)
 }
-pub fn insert_user(conn: Connection, email: String, salt: String) -> Result<User, String> {
-    let qs = "insert into user_ (email, salt, uuid_) values ($1, $2, $3) \
+pub fn insert_user(conn: Connection, email: String, salt: Vec<u8>, password: Vec<u8>) -> Result<User, String> {
+    let qs = "insert into user_ (email, salt, password, uuid_) values ($1, $2, $3, $4) \
               returning id, date_created, date_modified";
     let uuid = Uuid::new_v4();
-    try_insert_to_model!(conn.query(qs, &[&email, &salt, &uuid]) ;
+    try_insert_to_model!(conn.query(qs, &[&email, &salt, &password, &uuid]) ;
                          User ;
                          id: 0, date_created: 1, date_modified: 2 ;
-                         email: email, salt: salt, uuid: uuid)
+                         email: email, salt: salt, password: password, uuid: uuid)
 }
 
 

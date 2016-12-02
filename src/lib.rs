@@ -1,10 +1,13 @@
-
 extern crate chrono;
 extern crate uuid;
 extern crate rustc_serialize;
 extern crate jsonwebtoken as jwt;
 #[macro_use]
 extern crate lazy_static;
+#[macro_use]
+extern crate env_logger;
+extern crate crypto;
+extern crate rand;
 
 #[macro_use]
 extern crate r2d2;
@@ -16,8 +19,6 @@ extern crate iron;
 extern crate router;
 extern crate plugin;
 extern crate logger;
-extern crate env_logger;
-
 
 #[macro_use]
 pub mod macros;

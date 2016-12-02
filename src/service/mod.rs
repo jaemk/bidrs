@@ -1,7 +1,7 @@
-/// Service
-///
-/// Server, router, external resources setup
-
+//! Service
+//!
+//! Server, router, external resources setup
+//!
 use std::sync::{Arc, Mutex};
 
 use super::iron::prelude::*;

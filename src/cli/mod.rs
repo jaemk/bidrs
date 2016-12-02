@@ -1,4 +1,5 @@
-
+//! CLI
+//!
 use std::collections::BTreeMap;
 
 use super::postgres::{Connection, TlsMode};
@@ -49,8 +50,11 @@ pub fn consume(args: Vec<String>) {
         println!("{:?}", user);
     } else if arg == "user-insert" {
         let email = get_arg_or(&args, 1, "james");
-        let salt = auth::new_salt();
-        let ins = sql::insert_user(conn, email, salt);
+        let pass_raw = get_arg_or(&args, 2, "password");
+        let salt = auth::new_salt().unwrap();
+        println!("{:?}, len: {:?}", salt, salt.len());
+        let pass_secure = auth::hash(pass_raw.as_str(), salt.as_slice()).unwrap();
+        let ins = sql::insert_user(conn, email, salt, pass_secure);
         println!("{:?}", ins);
     }
 

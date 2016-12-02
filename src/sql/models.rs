@@ -1,8 +1,8 @@
-/// Models
-///
-/// sql models mapping to database tables & impls to generate
-/// structs from rows
-
+//! Models
+//!
+//! sql models mapping to database tables & impls to generate
+//! structs from rows
+//!
 use super::super::chrono;
 use super::super::uuid;
 use super::super::postgres;
@@ -15,7 +15,8 @@ use super::super::rustc_serialize::json::{Json}; //, ToJson};
 pub struct User {
     pub id: i32,
     pub email: String,
-    pub salt: String,
+    pub salt: Vec<u8>,
+    pub password: Vec<u8>,
     pub uuid: uuid::Uuid,
     pub date_created: chrono::DateTime<chrono::UTC>,
     pub date_modified: chrono::DateTime<chrono::UTC>,
@@ -26,9 +27,10 @@ impl User {
             id: row.get(0),
             email: row.get(1),
             salt: row.get(2),
-            uuid: row.get(3),
-            date_created: row.get(4),
-            date_modified: row.get(5),
+            password: row.get(3),
+            uuid: row.get(4),
+            date_created: row.get(5),
+            date_modified: row.get(6),
         }
     }
 }

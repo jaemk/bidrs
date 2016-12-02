@@ -1,7 +1,8 @@
 create table user_ (
     id            serial PRIMARY KEY,
     email         text UNIQUE NOT NULL,
-    salt          text UNIQUE NOT NULL,
+    salt          bytea NOT NULL,
+    password      bytea NOT NULL,
     uuid_         uuid UNIQUE NOT NULL,
     date_created  timestamp WITH TIME ZONE NOT NULL DEFAULT NOW(),
     date_modified timestamp WITH TIME ZONE NOT NULL DEFAULT NOW()

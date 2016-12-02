@@ -1,8 +1,8 @@
-/// Sessions
-///
-/// Session & SessionStore impls
-/// SessionKey for insertion in iron's request.extensions typemap
-
+//! Sessions
+//!
+//! Session & SessionStore impls
+//! SessionKey for insertion in iron's request.extensions typemap
+//!
 use std::collections::HashMap;
 use super::uuid::Uuid;
 use super::chrono;

@@ -1,6 +1,5 @@
-/// Custom Middleware
-///
-
+//! Custom Middleware
+//!
 use std::sync::{Arc, Mutex};
 
 use super::iron::{Request, IronResult, IronError, Handler, Response, status};
@@ -30,10 +29,10 @@ impl BeforeMiddleware for InfoLog {
 }
 
 
-/// Session middleware handler to look for and insert the current
-/// session into the request.extensions typemap.
-/// This handler is intended to be returned from
-/// SessionMiddleware (AroundMiddleware)
+/// Session middleware handler to look for an auth/session token
+/// in the request.extensions typemap and either return an
+/// unauthorized response or call the provided handler.
+/// This handler is intended to be returned from SessionMiddleware (AroundMiddleware)
 struct SessionMiddlewareHandler<H: Handler> {
     store: SStore,
     handler: H,
@@ -42,13 +41,13 @@ impl<H: Handler> Handler for SessionMiddlewareHandler<H> {
     fn handle(&self, request: &mut Request) -> IronResult<Response> {
         { // move to inner scope so store lock gets dropped before calling the given handle
             let mut store = self.store.lock().unwrap();
-            let sess = match request.headers.get::<Authorization<String>>() {
+            let valid = match request.headers.get::<Authorization<String>>() {
                 Some(token) => {
                     store.check_delete(&token)
                 },
                 _ => false,
             };
-            if !sess {
+            if !valid {
                 let curr_path = request.url.path().iter()
                                        .map(|p| p.to_string())
                                        .next().unwrap_or("".to_string());
@@ -63,8 +62,8 @@ impl<H: Handler> Handler for SessionMiddlewareHandler<H> {
 
 
 /// SessionMiddleware (AroundMiddleware) intended to check incoming
-/// requests for a session-token and reject any non token or
-/// expired token requests
+/// requests for an authorized session-token and reject any non token or
+/// expired token requests.
 pub struct SessionMiddleware {
     store: SStore,
 }

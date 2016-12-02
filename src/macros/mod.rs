@@ -1,3 +1,5 @@
+//! Project macros
+//!
 
 #[macro_export]
 /// Intended for inserting a row and returning
@@ -6,7 +8,7 @@
 ///
 /// # Examples
 ///
-/// ```
+/// ```rust,ignore
 /// pub fn insert_user(conn: Connection, username: String) -> Result<models::User, String> {
 ///     let qs = "insert into biddy_user (username, uuid_) values ($1, $2) \
 ///               returning id, date_created, date_modified";
@@ -53,7 +55,7 @@ macro_rules! try_insert_to_model {
 ///
 /// # Examples
 ///
-/// ```
+/// ```rust,ignore
 /// pub fn select_user_by_id(conn: &Connection, user_id: &i32) -> Option<User> {
 ///     let qs = "select id, username, uuid_, date_created, date_modified \
 ///               from biddy_user where id = $1";
@@ -75,7 +77,7 @@ macro_rules! query_or_none {
 ///
 /// # Examples
 ///
-/// ```
+/// ```rust,ignore
 /// pub fn select_users_all(conn: &Connection) -> Vec<User> {
 ///     let qs = "select id, username, uuid_, date_created, date_modified \
 ///               from biddy_user";

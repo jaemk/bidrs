@@ -14,8 +14,7 @@ impl UsersHandler {
     }
 }
 impl Handler for UsersHandler {
-    fn handle(&self, request: &mut Request) -> IronResult<Response> {
-        println!("request-session-key: {:?}", request.extensions.get::<SessionKey>());
+    fn handle(&self, _request: &mut Request) -> IronResult<Response> {
         let conn = self.db_pool.get().unwrap();
         let users = sql::select_users_all(&conn);
         let payload = json::encode(&users).unwrap();

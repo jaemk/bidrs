@@ -48,7 +48,7 @@ impl Handler for LoginHandler {
             _ => return unauthorized(None),
         };
 
-        if hash != user.password {
+        if !auth::const_eq(hash.as_slice(), user.password.as_slice()) {
             return unauthorized(None);
         }
 

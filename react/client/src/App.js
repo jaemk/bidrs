@@ -85,7 +85,7 @@ class App extends Component {
     // Log in user
     // TODO: Make this a general apiPost
     logIn(email, password) {
-        console.log("log in! " + email + ', ' + password);
+        //console.log("log in! " + email + ', ' + password);
         let data = {
             email: email,
             password: password,

@@ -35,13 +35,16 @@ pub fn start() {
     // initialize handler manager with external resources
     let handlers = Handlers::new(db_pool, session_store);
 
+    // Setup endpoints
     let mut router = Router::new();
+    router.post("/login", handlers.login, "login");
     router.get("/hello", handlers.hello, "hello");
     router.get("/users", handlers.users, "users");
-    router.post("/login", handlers.login, "login");
     router.post("/msg", handlers.post_msg , "post_msg");
     router.get("/msg", handlers.get_msg, "get_msg");
+    router.get("/whoami", handlers.whoami, "whoami");
 
+    // Add middleware
     let mut chain = Chain::new(router);
     chain.link_before(log_before);          // general logger
     chain.link_before(InfoLog);             // custom request-info log

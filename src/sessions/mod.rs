@@ -7,7 +7,8 @@ use std::collections::HashMap;
 use super::uuid::Uuid;
 use super::chrono;
 use super::jwt::{encode, Header};
-use super::iron::typemap;
+use super::iron::{headers, Request};
+//use super::iron::typemap;
 
 
 #[derive(RustcEncodable, RustcDecodable)]
@@ -30,18 +31,18 @@ fn generate_token(uuid: String) -> Result<String, String> {
 }
 
 
-/// SessionKey type to be inserted & retrieved from iron's request typemap
-pub struct SessionKey;
-impl typemap::Key for SessionKey {
-    type Value = Session;
-}
+///// SessionKey type to be inserted & retrieved from iron's request typemap
+//pub struct SessionKey;
+//impl typemap::Key for SessionKey {
+//    type Value = Session;
+//}
 
 
 #[derive(Debug)]
 /// User Session token and information
 pub struct Session {
     pub token: String,
-    user_uuid: Uuid,
+    pub user_uuid: Uuid,
     data: String,
     pub stamp: chrono::DateTime<chrono::UTC>,
 }
@@ -123,6 +124,14 @@ impl SessionStore {
     /// Returns a mutable reference to the session corresponding to the token.
     pub fn get_mut(&mut self, token: &String) -> Option<&mut Session> {
         self.store.get_mut(token)
+    }
+
+    ///
+    pub fn get_mut_from_request(&mut self, request: &Request) -> Option<&mut Session> {
+        match request.headers.get::<headers::Authorization<String>>() {
+            Some(token) => self.get_mut(token),
+            None => None,
+        }
     }
 
     /// Touch the given session (by token) to update its timestamp

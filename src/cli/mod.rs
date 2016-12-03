@@ -1,5 +1,7 @@
 //! CLI
 //!
+use std::io;
+use std::io::Write;
 use std::collections::BTreeMap;
 
 use super::postgres::{Connection, TlsMode};
@@ -28,14 +30,33 @@ fn get_arg_or(args: &Vec<String>, n: usize, or: &str) -> String {
     arg.to_string()
 }
 
+fn prompt(msg: &str) -> String {
+    let stdin = io::stdin();
+    let mut resp = String::new();
+    print!("{}", msg);
+    let _ = io::stdout().flush();
+    let _ = stdin.read_line(&mut resp).unwrap();
+    resp.trim().to_string()
+}
+
 pub fn consume(args: Vec<String>) {
     let arg = get_arg_or(&args, 0, "select");
 
     let conn = Connection::connect("postgresql://biddy:biddy@localhost", TlsMode::None).unwrap();
     println!("Connected to db!");
 
+    if arg == "create-admin" {
+        println!("\nCreating a new admin!");
+        let email = prompt(" $ email >> ");
+        let password = prompt(" $ password >> ");
+        let salt = auth::new_salt().unwrap();
+        let pass_secure = auth::hash(password.as_str(), salt.as_slice()).unwrap();
+        let _ = sql::insert_user(conn, email.clone(), salt, pass_secure);
+        println!("New user `{}` created!", email);
+    }
+
     // user actions
-    if arg == "user-select" {
+    else if arg == "user-select" {
         let id = get_arg_or(&args, 1, "select");
         let idint = id.parse::<i32>().unwrap_or(1);
         let user = sql::select_user_by_id(&conn, &idint);

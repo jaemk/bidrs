@@ -9,7 +9,8 @@ use super::rustc_serialize::json;
 pub mod models;
 
 use self::models::{
-    User, Organization,
+    User, UserShort,
+    Organization,
     Bidder, Item,
     Profile, Bid,
 };
@@ -26,6 +27,11 @@ pub fn select_user_by_email(conn: &Connection, email: &String) -> Option<User> {
     let qs = "select id, email, salt, password, uuid_, date_created, date_modified \
               from user_ where email = $1";
     query_or_none!(conn.query(qs, &[email]), User)
+}
+pub fn select_user_by_uuid(conn: &Connection, uuid: &Uuid) -> Option<UserShort> {
+    let qs = "select id, email, uuid_, date_created, date_modified \
+              from user_ where uuid_ = $1";
+    query_or_none!(conn.query(qs, &[uuid]), UserShort)
 }
 pub fn select_user_latest(conn: &Connection) -> Option<User> {
     let qs = "select id, email, salt, password, uuid_, date_created, date_modified \

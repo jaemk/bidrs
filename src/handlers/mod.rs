@@ -17,6 +17,7 @@ mod login;
 mod hello;
 mod msg;
 mod users;
+mod whoami;
 
 
 #[derive(RustcEncodable, RustcDecodable)]
@@ -32,7 +33,7 @@ pub struct Msg {
 /// ```
 mod prelude {
     // iron stuff
-    pub use super::super::iron::{Handler, Request, Response, IronResult, status};
+    pub use super::super::iron::{Handler, Request, Response, IronResult, status, headers};
 
     // extern crate stuff
     pub use super::super::rustc_serialize::json;
@@ -41,13 +42,14 @@ mod prelude {
     // our libs
     pub use super::super::sql;
     pub use super::super::auth;
-    pub use super::super::sessions::{Session, SessionStore, SessionKey};
+    pub use super::super::sessions::{Session, SessionStore};
 
     // local types
     pub use super::Msg;
     pub use super::PgPool;
     pub use super::SStore;
 
+    /// Return an unauthorized response, optionally specify the message
     pub fn unauthorized(message: Option<String>) -> IronResult<Response> {
         let _msg = match message {
             Some(m) => m,
@@ -67,6 +69,7 @@ pub struct Handlers {
     pub users: users::UsersHandler,
     pub post_msg: msg::PostMsgHandler,
     pub get_msg: msg::GetMsgHandler,
+    pub whoami: whoami::WhoamiHandler,
 }
 impl Handlers {
     pub fn new(db_pool: PgPool, s_store: SStore) -> Handlers {
@@ -76,6 +79,7 @@ impl Handlers {
             get_msg: msg::GetMsgHandler::new(),
             login: login::LoginHandler::new(db_pool.clone(), s_store.clone()),
             users: users::UsersHandler::new(db_pool.clone()),
+            whoami: whoami::WhoamiHandler::new(db_pool.clone(), s_store.clone()),
         }
     }
 }

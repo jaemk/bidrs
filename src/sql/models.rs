@@ -34,6 +34,25 @@ impl User {
         }
     }
 }
+#[derive(Debug, RustcEncodable, RustcDecodable)]
+pub struct UserShort {
+    pub id: i32,
+    pub email: String,
+    pub uuid: uuid::Uuid,
+    pub date_created: chrono::DateTime<chrono::UTC>,
+    pub date_modified: chrono::DateTime<chrono::UTC>,
+}
+impl UserShort {
+    pub fn from_row(row: postgres::rows::Row) -> UserShort {
+        UserShort {
+            id: row.get(0),
+            email: row.get(1),
+            uuid: row.get(2),
+            date_created: row.get(3),
+            date_modified: row.get(4),
+        }
+    }
+}
 
 
 #[derive(Debug, RustcEncodable)]

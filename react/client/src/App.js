@@ -28,6 +28,7 @@ class App extends Component {
         super();
         this.state = {
             authenticated: false,
+            administrator: false,
             authError: false,
             token: "",
             path: "/",
@@ -42,8 +43,10 @@ class App extends Component {
         };
 
         this.logIn = this.logIn.bind(this);
+        this.logOut = this.logOut.bind(this);
         this.relogOnUnauthorized = this.relogOnUnauthorized.bind(this);
         this.apiGet = this.apiGet.bind(this);
+        this.apiPost = this.apiPost.bind(this);
         this.selectPath = this.selectPath.bind(this);
         this.injectChildrenWithProps = this.injectChildrenWithProps.bind(this);
     }
@@ -82,30 +85,55 @@ class App extends Component {
             });
     }
 
+    // Wrapper around axios.post, applies 'handler' to a
+    // successful response and optional 'errHandler' to any error response
+    apiPost(url, data, handler, errHandler) {
+        axios.post(url, data, this.state.axiosConfig.toJS())
+            .then((resp) => {
+                handler(resp);
+            })
+            .catch((err) => {
+                this.relogOnUnauthorized(err);
+                if (errHandler) {
+                    errHandler(err);
+                }
+            });
+    }
+
     // Log in user
-    // TODO: Make this a general apiPost
     logIn(email, password) {
-        //console.log("log in! " + email + ', ' + password);
         let data = {
             email: email,
             password: password,
         };
-        axios.post('/login', data, this.state.axiosConfig.toJS())
-            .then((resp) => {
-                let token = resp.data.token;
-                let config = this.state.axiosConfig;
-                config = config.setIn(['headers', 'Authorization'], token);
-                console.log(config);
-                this.setState({
-                    authenticated: true,
-                    token: token,
-                    axiosConfig: config,
-                });
-            })
-            .catch((err) => {
-                console.log(err);
+        const handler = (resp) => {
+            let token = resp.data.token;
+            let admin = resp.data.admin? true : false;
+            let config = this.state.axiosConfig;
+            config = config.setIn(['headers', 'Authorization'], token);
+            console.log(config);
+            this.setState({
+                authenticated: true,
+                administrator: admin,
+                token: token,
+                axiosConfig: config,
             });
+        };
+        const errHandler = (err) => {
+            console.log(err);
+        };
+        this.apiPost('/login', data, handler, errHandler);
     }
+
+    // Log out user/admin
+    logOut() {
+        this.setState({
+            authenticated: false,
+            administrator: false,
+        });
+    }
+
+    // Redirect router to the specified path
     selectPath(path) {
         console.log('Select path: ' + path);
         let rlen = this.context.router.routes.length;
@@ -115,11 +143,14 @@ class App extends Component {
         }
         this.setState({ path: path });
     }
+
+    // Inject specified properties into all child components
     injectChildrenWithProps(children) {
         return React.Children.map(children, (child) => {
             let props = {
                 // funcs
                 apiGet: this.apiGet,
+                apiPost: this.apiPost,
 
                 // app.state
                 token: this.state.token,
@@ -127,6 +158,8 @@ class App extends Component {
             return React.cloneElement(child, props);
         });
     }
+
+
     render() {
         return (
             <MuiThemeProvider muiTheme={muiThemer(this.state.path)}>

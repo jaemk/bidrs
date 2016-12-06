@@ -11,7 +11,8 @@ use std::time;
 use super::uuid::Uuid;
 use super::chrono;
 use super::jwt::{encode, Header};
-use super::iron::{headers, Request};
+use super::iron::Request;
+use super::iron::headers::Authorization;
 use super::iron::typemap;
 
 
@@ -133,11 +134,19 @@ impl SessionStore {
         self.store.get_mut(token)
     }
 
-    ///
+    /// Return a mutable reference to the session linked to the request
+    /// Authorization token
     pub fn get_mut_from_request(&mut self, request: &Request) -> Option<&mut Session> {
-        match request.headers.get::<headers::Authorization<String>>() {
+        match request.headers.get::<Authorization<String>>() {
             Some(token) => self.get_mut(token),
             None => None,
+        }
+    }
+
+    pub fn delete_by_request(&mut self, request: &Request) -> Option<Session> {
+        match request.headers.get::<Authorization<String>>() {
+            Some(&Authorization(ref token)) => self.store.remove(token),
+            _ => None,
         }
     }
 
@@ -161,7 +170,6 @@ pub fn start_daemon_sweeper(session_store: Arc<Mutex<SessionStore>>, interval: u
     // startup session daemon
     thread::spawn(move || {
         loop {
-            thread::sleep(time::Duration::from_secs(interval));
             {
                 let mut s_store = session_store.lock().unwrap();
                 let stale = s_store.store.iter().fold(vec![], |mut acc, (k, v)| {
@@ -176,8 +184,9 @@ pub fn start_daemon_sweeper(session_store: Arc<Mutex<SessionStore>>, interval: u
                     s_store.store.remove(k);
                     count += 1;
                 }
-                println!("Cleaned out {} stale sessions", count);
+                println!(">> Cleaned out {} stale sessions", count);
             }
+            thread::sleep(time::Duration::from_secs(interval));
         }
     });
 }

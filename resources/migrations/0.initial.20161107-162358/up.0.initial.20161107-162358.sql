@@ -55,6 +55,7 @@ create table profile (
     date_modified timestamp WITH TIME ZONE NOT NULL DEFAULT NOW()
 );
 create index on profile ((lower(name)));
+create unique index on profile ((user_id));
 
 create table bid (
     id            serial PRIMARY KEY,

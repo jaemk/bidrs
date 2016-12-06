@@ -49,10 +49,17 @@ pub fn consume(args: Vec<String>) {
         println!("\nCreating a new admin!");
         let email = prompt(" $ email >> ");
         let password = prompt(" $ password >> ");
+        let admin_level = prompt(" $ admin-level >> ").parse::<i32>().unwrap();
+        let name = prompt(" $ name  >> ");
+        let primary = true;
         let salt = auth::new_salt().unwrap();
         let pass_secure = auth::hash(password.as_str(), salt.as_slice()).unwrap();
-        let _ = sql::insert_user(conn, email.clone(), salt, pass_secure);
-        println!("New user `{}` created!", email);
+        let new_user = sql::insert_user(&conn, email, salt, pass_secure).unwrap();
+        let new_prof = sql::insert_profile(
+            &conn, new_user.id, None, admin_level,
+            primary, name, None, None,
+            None, None, None).unwrap();
+        println!("New user `{}:{}` created!", new_user.email, new_prof.name);
     }
 
     // user actions
@@ -75,7 +82,7 @@ pub fn consume(args: Vec<String>) {
         let salt = auth::new_salt().unwrap();
         println!("{:?}, len: {:?}", salt, salt.len());
         let pass_secure = auth::hash(pass_raw.as_str(), salt.as_slice()).unwrap();
-        let ins = sql::insert_user(conn, email, salt, pass_secure);
+        let ins = sql::insert_user(&conn, email, salt, pass_secure);
         println!("{:?}", ins);
     }
 
@@ -106,7 +113,7 @@ pub fn consume(args: Vec<String>) {
             phone: "5551239876".to_string(),
             address: "123 nut drive".to_string(),
         };
-        let ins = sql::insert_org(conn, name, Some(extra.to_json()));
+        let ins = sql::insert_org(&conn, name, Some(extra.to_json()));
         println!("{:?}", ins);
     }
 
@@ -130,7 +137,7 @@ pub fn consume(args: Vec<String>) {
         println!("{:?}", sql::select_bidder_latest(&conn));
     } else if arg == "bidder-insert" {
         let org_id = get_arg_or(&args, 1, "").parse::<i32>().unwrap_or(1);
-        let ins = sql::insert_bidder(conn, org_id);
+        let ins = sql::insert_bidder(&conn, org_id);
         println!("{:?}", ins);
     }
 
@@ -142,7 +149,7 @@ pub fn consume(args: Vec<String>) {
         }
     } else if arg == "item-insert" {
         let org_id = get_arg_or(&args, 1, "").parse::<i32>().unwrap_or(1);
-        let ins = sql::insert_item(conn, org_id, false, "item1".to_string(),
+        let ins = sql::insert_item(&conn, org_id, false, "item1".to_string(),
                                    "item1-desc".to_string(), 2000_0000i64, 100_0000i64);
         println!("{:?}", ins);
     }
@@ -160,7 +167,7 @@ pub fn consume(args: Vec<String>) {
             phone: "5551239876".to_string(),
             address: "123 nut drive".to_string(),
         };
-        let ins = sql::insert_profile(conn, user_id, Some(bidder_id), 1, false,
+        let ins = sql::insert_profile(&conn, user_id, Some(bidder_id), 1, false,
                                       "james".to_string(), None, None, None,
                                       None, Some(extra.to_json()));
         println!("{:?}", ins);
@@ -176,7 +183,7 @@ pub fn consume(args: Vec<String>) {
         let bidder_id = get_arg_or(&args, 1, "").parse::<i32>().unwrap_or(1);
         let item_id = get_arg_or(&args, 2, "").parse::<i32>().unwrap_or(1);
 
-        let ins = sql::insert_bid(conn, bidder_id, item_id, 100_0000);
+        let ins = sql::insert_bid(&conn, bidder_id, item_id, 100_0000);
         println!("{:?}", ins);
     } else if arg == "bid-select-by-item" {
         let item_id = get_arg_or(&args, 1, "").parse::<i32>().unwrap_or(1);

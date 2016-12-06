@@ -30,6 +30,7 @@ class App extends Component {
             authenticated: false,
             administrator: false,
             authError: false,
+            authErrorMessage: "",
             token: "",
             path: "/",
 
@@ -45,6 +46,7 @@ class App extends Component {
         this.logIn = this.logIn.bind(this);
         this.logOut = this.logOut.bind(this);
         this.relogOnUnauthorized = this.relogOnUnauthorized.bind(this);
+        this.resetAuthError = this.resetAuthError.bind(this);
         this.apiGet = this.apiGet.bind(this);
         this.apiPost = this.apiPost.bind(this);
         this.selectPath = this.selectPath.bind(this);
@@ -121,16 +123,36 @@ class App extends Component {
         };
         const errHandler = (err) => {
             console.log(err);
+            this.setState({
+                authErrorMessage: "Invalid Credentials",
+            });
         };
         this.apiPost('/login', data, handler, errHandler);
     }
 
     // Log out user/admin
     logOut() {
-        this.setState({
-            authenticated: false,
-            administrator: false,
-        });
+        const handler = (resp) => {
+            let msg = resp.data.msg;
+            if (msg === "logout") {
+                this.setState({
+                    authenticated: false,
+                    administrator: false,
+                });
+            }
+        };
+        const errHandler = (err) => { console.log(err); }
+        this.apiPost('/logout', {}, handler, errHandler);
+    }
+
+    // Reset auth errors that propagate to Login
+    resetAuthError() {
+        if (this.state.authError || this.state.authErrorMessage) {
+            this.setState({
+                authError: false,
+                authErrorMessage: "",
+            });
+        }
     }
 
     // Redirect router to the specified path
@@ -152,8 +174,15 @@ class App extends Component {
                 apiGet: this.apiGet,
                 apiPost: this.apiPost,
 
+                logOut: this.logOut,
+
                 // app.state
                 token: this.state.token,
+
+                // login
+                login: {
+                    error: this.state.authError,
+                },
             };
             return React.cloneElement(child, props);
         });
@@ -174,10 +203,15 @@ class App extends Component {
                             <div className="Login">
                                 <Login
                                     logIn={this.logIn}
+                                    error={this.state.authError}
+                                    resetError={this.resetAuthError}
                                 />
                                 <Snackbar
                                     open={this.state.authError}
-                                    message="Please log back in!"
+                                    message={this.state.authErrorMessage?
+                                            this.state.authErrorMessage
+                                            :
+                                            "Please log back in!"}
                                 />
                             </div>
                         }

@@ -35,6 +35,10 @@ class About extends Component {
                         this.state.msg : "No msg"
                     }
                 </pre>
+                <RaisedButton
+                    label="logout"
+                    onTouchTap={this.props.logOut}
+                />
             </div>
         );
     }

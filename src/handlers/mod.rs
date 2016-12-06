@@ -14,6 +14,7 @@ pub type SStore = Arc<Mutex<SessionStore>>;
 
 // handler defs
 mod login;
+mod logout;
 mod hello;
 mod msg;
 mod users;
@@ -66,6 +67,7 @@ mod prelude {
 pub struct Handlers {
     pub hello: hello::HelloHandler,
     pub login: login::LoginHandler,
+    pub logout: logout::LogoutHandler,
     pub users: users::UsersHandler,
     pub post_msg: msg::PostMsgHandler,
     pub get_msg: msg::GetMsgHandler,
@@ -78,6 +80,7 @@ impl Handlers {
             post_msg: msg::PostMsgHandler::new(),
             get_msg: msg::GetMsgHandler::new(),
             login: login::LoginHandler::new(db_pool.clone(), s_store.clone()),
+            logout: logout::LogoutHandler::new(s_store.clone()),
             users: users::UsersHandler::new(db_pool.clone()),
             whoami: whoami::WhoamiHandler::new(db_pool.clone(), s_store.clone()),
         }

@@ -13,8 +13,9 @@ struct ApiAuth {
     password: String,
 }
 #[derive(Debug, RustcEncodable, RustcDecodable)]
-struct Token {
+struct AuthSuccess {
     token: String,
+    admin: bool,
 }
 pub struct LoginHandler {
     db_pool: PgPool,
@@ -37,7 +38,7 @@ impl Handler for LoginHandler {
 
         // look for user by email
         let conn = self.db_pool.get().unwrap();
-        let user = match sql::select_user_by_email(&conn, &auth_info.email) {
+        let user = match sql::select_authuser_by_email(&conn, &auth_info.email) {
             Some(u) => u,
             None => return unauthorized(None),
         };
@@ -54,11 +55,13 @@ impl Handler for LoginHandler {
 
         // auth was successful, initialize a new session
         let new_sess = Session::new(&user.uuid);
-        let token = Token { token: new_sess.token.clone() };
+        let resp = AuthSuccess {
+            token: new_sess.token.clone(),
+            admin: user.level > 9,
+        };
         self.s_store.lock().unwrap().add(new_sess);
-        println!("login, session-size: {:?}", self.s_store.lock().unwrap().len());
 
         // send back the new auth/session token
-        Ok(Response::with((status::Ok, json::encode(&token).unwrap())))
+        Ok(Response::with((status::Ok, json::encode(&resp).unwrap())))
     }
 }

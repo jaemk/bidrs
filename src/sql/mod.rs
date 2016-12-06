@@ -10,6 +10,7 @@ pub mod models;
 
 use self::models::{
     User, UserShort,
+    AuthUser,
     Organization,
     Bidder, Item,
     Profile, Bid,
@@ -23,15 +24,18 @@ pub fn select_user_by_id(conn: &Connection, user_id: &i32) -> Option<User> {
               from user_ where id = $1";
     query_or_none!(conn.query(qs, &[user_id]), User)
 }
-pub fn select_user_by_email(conn: &Connection, email: &String) -> Option<User> {
-    let qs = "select id, email, salt, password, uuid_, date_created, date_modified \
-              from user_ where email = $1";
-    query_or_none!(conn.query(qs, &[email]), User)
-}
 pub fn select_user_by_uuid(conn: &Connection, uuid: &Uuid) -> Option<UserShort> {
-    let qs = "select id, email, uuid_, date_created, date_modified \
+    let qs = "select id, email, uuid, date_create, date_modified \
               from user_ where uuid_ = $1";
     query_or_none!(conn.query(qs, &[uuid]), UserShort)
+}
+pub fn select_authuser_by_email(conn: &Connection, email: &String) -> Option<AuthUser> {
+    let qs = "select user_.id, user_.email, user_.salt, user_.password, \
+              user_.uuid_, profile.level_ \
+              from user_ join profile \
+              on user_.id = profile.user_id \
+              where user_.email = $1";
+    query_or_none!(conn.query(qs, &[email]), AuthUser)
 }
 pub fn select_user_latest(conn: &Connection) -> Option<User> {
     let qs = "select id, email, salt, password, uuid_, date_created, date_modified \
@@ -43,7 +47,7 @@ pub fn select_users_all(conn: &Connection) -> Vec<User> {
               from user_";
     query_coll!(conn.query(qs, &[]), User)
 }
-pub fn insert_user(conn: Connection, email: String, salt: Vec<u8>, password: Vec<u8>) -> Result<User, String> {
+pub fn insert_user(conn: &Connection, email: String, salt: Vec<u8>, password: Vec<u8>) -> Result<User, String> {
     let qs = "insert into user_ (email, salt, password, uuid_) values ($1, $2, $3, $4) \
               returning id, date_created, date_modified";
     let uuid = Uuid::new_v4();
@@ -70,7 +74,7 @@ pub fn select_orgs_all(conn: &Connection) -> Vec<Organization> {
     let qs = "select id, name, extra, date_created, date_modified from organization";
     query_coll!(conn.query(qs, &[]), Organization)
 }
-pub fn insert_org(conn: Connection, name: String, extra: Option<json::Json>) -> Result<Organization, String> {
+pub fn insert_org(conn: &Connection, name: String, extra: Option<json::Json>) -> Result<Organization, String> {
     let qs = "insert into organization (name, extra) values ($1, $2) \
               returning id, date_created, date_modified";
     try_insert_to_model!(conn.query(qs, &[&name, &extra]) ;
@@ -101,7 +105,7 @@ pub fn select_bidders_by_org(conn: &Connection, org_id: &i32) -> Vec<Bidder> {
               from bidder where organization_id = $1";
     query_coll!(conn.query(qs, &[org_id]), Bidder)
 }
-pub fn insert_bidder(conn: Connection, org_id: i32) -> Result<Bidder, String> {
+pub fn insert_bidder(conn: &Connection, org_id: i32) -> Result<Bidder, String> {
     let qs = "insert into bidder (organization_id) values ($1) \
               returning id, date_created, date_modified";
     try_insert_to_model!(conn.query(qs, &[&org_id]) ;
@@ -118,7 +122,7 @@ pub fn select_items_all(conn: &Connection) -> Vec<Item> {
               from item";
     query_coll!(conn.query(qs, &[]), Item)
 }
-pub fn insert_item(conn: Connection, org_id: i32, is_goal: bool,
+pub fn insert_item(conn: &Connection, org_id: i32, is_goal: bool,
                    title: String, desc: String, value: i64, min_bid: i64)
                    -> Result<Item, String> {
     let qs = "insert into item (organization_id, is_goal, title, description, value, min_bid) \
@@ -141,7 +145,7 @@ pub fn select_profiles_all(conn: &Connection) -> Vec<Profile> {
               from profile";
     query_coll!(conn.query(qs, &[]), Profile)
 }
-pub fn insert_profile(conn: Connection, user_id: i32, bidder_id: Option<i32>, level: i32,
+pub fn insert_profile(conn: &Connection, user_id: i32, bidder_id: Option<i32>, level: i32,
                       is_primary: bool, name: String, phone_cc: Option<String>,
                       phone_number: Option<String>, phone_ext: Option<String>,
                       cc_info: Option<json::Json>, extra: Option<json::Json>)
@@ -173,7 +177,7 @@ pub fn select_bids_by_item(conn: &Connection, item_id: &i32) -> Vec<Bid> {
               from bid where item_id = $1";
     query_coll!(conn.query(qs, &[item_id]), Bid)
 }
-pub fn insert_bid(conn: Connection, bidder_id: i32, item_id: i32, amount: i64) -> Result<Bid, String> {
+pub fn insert_bid(conn: &Connection, bidder_id: i32, item_id: i32, amount: i64) -> Result<Bid, String> {
     let qs = "insert into bid (bidder_id, item_id, amount) values ($1, $2, $3) \
               returning id, date_created, date_modified";
     try_insert_to_model!(conn.query(qs, &[&bidder_id, &item_id, &amount]) ;

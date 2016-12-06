@@ -53,6 +53,27 @@ impl UserShort {
         }
     }
 }
+#[derive(Debug, RustcEncodable, RustcDecodable)]
+pub struct AuthUser {
+    pub id: i32,
+    pub email: String,
+    pub salt: Vec<u8>,
+    pub password: Vec<u8>,
+    pub uuid: uuid::Uuid,
+    pub level: i32,
+}
+impl AuthUser {
+    pub fn from_row(row: postgres::rows::Row) -> AuthUser {
+        AuthUser {
+            id: row.get(0),
+            email: row.get(1),
+            salt: row.get(2),
+            password: row.get(3),
+            uuid: row.get(4),
+            level: row.get(5),
+        }
+    }
+}
 
 
 #[derive(Debug, RustcEncodable)]

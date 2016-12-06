@@ -39,6 +39,7 @@ pub fn start() {
     // Setup endpoints
     let mut router = Router::new();
     router.post("/login", handlers.login, "login");
+    router.post("/logout", handlers.logout, "logout");
     router.get("/hello", handlers.hello, "hello");
     router.get("/users", handlers.users, "users");
     router.post("/msg", handlers.post_msg , "post_msg");
@@ -52,5 +53,7 @@ pub fn start() {
     chain.link_around(session_middleware);  // custom session middleware
     chain.link_after(log_after);            // general logger
 
-    Iron::new(chain).http("localhost:8000").unwrap();
+    let host = "localhost:8000";
+    println!(">> Serving at {}", host);
+    Iron::new(chain).http(host).unwrap();
 }

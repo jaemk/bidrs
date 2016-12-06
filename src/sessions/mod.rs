@@ -3,12 +3,16 @@
 //! Session & SessionStore impls
 //! SessionKey for insertion in iron's request.extensions typemap
 //!
+use std::sync::{Arc, Mutex};
 use std::collections::HashMap;
+use std::thread;
+use std::time;
+
 use super::uuid::Uuid;
 use super::chrono;
 use super::jwt::{encode, Header};
 use super::iron::{headers, Request};
-//use super::iron::typemap;
+use super::iron::typemap;
 
 
 #[derive(RustcEncodable, RustcDecodable)]
@@ -31,11 +35,14 @@ fn generate_token(uuid: String) -> Result<String, String> {
 }
 
 
-///// SessionKey type to be inserted & retrieved from iron's request typemap
-//pub struct SessionKey;
-//impl typemap::Key for SessionKey {
-//    type Value = Session;
-//}
+/// SessionKey type to be inserted & retrieved from iron's request typemap.
+/// This currently isn't used since all sessions must be authenticated
+/// and the session-token can be found in the request.headers::<Authorization>,
+/// but is available if needed.
+pub struct SessionKey;
+impl typemap::Key for SessionKey {
+    type Value = Session;
+}
 
 
 #[derive(Debug)]
@@ -69,8 +76,8 @@ impl Session {
 #[derive(Debug)]
 /// User session store & manager
 pub struct SessionStore {
-    store: HashMap<String, Session>,
-    life_span: chrono::Duration,
+    pub store: HashMap<String, Session>,
+    pub life_span: chrono::Duration,
 }
 impl SessionStore {
     /// Start a new session-store with a specified life-span
@@ -147,3 +154,30 @@ impl SessionStore {
     }
 }
 
+
+/// Start a daemon thread to clean out stale sessions left in
+/// the session-store every 'interval' seconds.
+pub fn start_daemon_sweeper(session_store: Arc<Mutex<SessionStore>>, interval: u64) {
+    // startup session daemon
+    thread::spawn(move || {
+        loop {
+            thread::sleep(time::Duration::from_secs(interval));
+            {
+                let mut s_store = session_store.lock().unwrap();
+                let stale = s_store.store.iter().fold(vec![], |mut acc, (k, v)| {
+                    let now_ish = chrono::UTC::now();
+                    if now_ish - v.stamp > s_store.life_span {
+                        acc.push(k.clone());
+                    }
+                    acc
+                });
+                let mut count = 0;
+                for k in stale.iter() {
+                    s_store.store.remove(k);
+                    count += 1;
+                }
+                println!("Cleaned out {} stale sessions", count);
+            }
+        }
+    });
+}

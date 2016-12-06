@@ -14,7 +14,7 @@ use super::r2d2_postgres::{PostgresConnectionManager, TlsMode};
 
 use super::handlers::{Handlers};
 use super::middleware::{InfoLog, SessionMiddleware};
-use super::sessions::{SessionStore};
+use super::sessions::{self, SessionStore};
 
 pub fn start() {
     // setup db connection pool
@@ -23,9 +23,10 @@ pub fn start() {
     let db_pool = Pool::new(Config::default(), db_mgr).expect("pool fail");
     println!(">> Connected to db!");
 
-    // setup session store access
+    // setup session store access and daemon
     let session_store = Arc::new(Mutex::new(SessionStore::new(20 * 60)));
     let session_middleware = SessionMiddleware::new(session_store.clone());
+    sessions::start_daemon_sweeper(session_store.clone(), 30 * 60);
     println!(">> Session store created");
 
     // setup general loggers

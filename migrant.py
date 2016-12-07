@@ -104,8 +104,8 @@ def search_for_migrations():
 
 
 def run_migration(migration_file, up_down):
-    command = subprocess.run(['sudo', '-u', PROJ_NAME, 'psql', '-U',
-                    PROJ_NAME, '-d', PROJ_NAME, '-f',
+    command = subprocess.run(['psql', '-U', PROJ_NAME,
+                    '-d', PROJ_NAME, '-h', 'localhost', '-f',
                     migration_file.up_path if up_down == 'up'
                     else migration_file.down_path], check=True,
                     stdout=subprocess.PIPE, stderr=subprocess.PIPE)
@@ -294,7 +294,7 @@ def run(args, meta):
     if arg == '--help':
         print(HELP)
     elif arg == '--shell':
-        subprocess.run(['sudo', '-u', PROJ_NAME, 'psql'])
+        subprocess.run(['psql', '-U', PROJ_NAME, '-d', PROJ_NAME, '-h', 'localhost'])
     elif arg in ['--up', '--down', '-u', '-d']:
         _dir = {'--up': 'up', '--down': 'down', '-u': 'up', '-d': 'down'}[arg]
         meta = apply_next(_dir, meta, available)

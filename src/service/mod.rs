@@ -53,7 +53,7 @@ pub fn start() {
     chain.link_around(session_middleware);  // custom session middleware
     chain.link_after(log_after);            // general logger
 
-    let host = "localhost:8000";
+    let host = "127.0.0.1:5000";
     println!(">> Serving at {}", host);
     Iron::new(chain).http(host).unwrap();
 }

@@ -18,7 +18,7 @@ use super::sessions::{self, SessionStore};
 
 pub fn start() {
     // setup db connection pool
-    let db_url = "postgresql://biddy:biddy@localhost";
+    let db_url = "postgresql://bidrs:bidrs@localhost";
     let db_mgr = PostgresConnectionManager::new(db_url, TlsMode::None).expect("connection fail");
     let db_pool = Pool::new(Config::default(), db_mgr).expect("pool fail");
     println!(">> Connected to db!");

@@ -1,8 +1,8 @@
-extern crate biddy;
+extern crate bidrs;
 
 use std::env;
 
-use biddy::{service, cli};
+use bidrs::{service, cli};
 
 pub fn main() {
     let usage = "serve or --cli-args";

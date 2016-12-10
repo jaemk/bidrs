@@ -10,7 +10,7 @@
 ///
 /// ```rust,ignore
 /// pub fn insert_user(conn: Connection, username: String) -> Result<models::User, String> {
-///     let qs = "insert into biddy_user (username, uuid_) values ($1, $2) \
+///     let qs = "insert into user_ (username, uuid_) values ($1, $2) \
 ///               returning id, date_created, date_modified";
 ///     let uuid = Uuid::new_v4();
 ///     try_insert_to_model!(conn.query(qs, &[&username, &uuid]) ;       // - insert query
@@ -58,7 +58,7 @@ macro_rules! try_insert_to_model {
 /// ```rust,ignore
 /// pub fn select_user_by_id(conn: &Connection, user_id: &i32) -> Option<User> {
 ///     let qs = "select id, username, uuid_, date_created, date_modified \
-///               from biddy_user where id = $1";
+///               from user_ where id = $1";
 ///     query_or_none!(conn.query(qs, &[user_id]), User)
 /// }
 /// ```
@@ -80,7 +80,7 @@ macro_rules! query_or_none {
 /// ```rust,ignore
 /// pub fn select_users_all(conn: &Connection) -> Vec<User> {
 ///     let qs = "select id, username, uuid_, date_created, date_modified \
-///               from biddy_user";
+///               from user_";
 ///     query_coll!(conn.query(qs, &[]), User)
 /// }
 /// ```

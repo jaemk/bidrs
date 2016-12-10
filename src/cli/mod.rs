@@ -42,7 +42,7 @@ fn prompt(msg: &str) -> String {
 pub fn consume(args: Vec<String>) {
     let arg = get_arg_or(&args, 0, "select");
 
-    let conn = Connection::connect("postgresql://biddy:biddy@localhost", TlsMode::None).unwrap();
+    let conn = Connection::connect("postgresql://bidrs:bidrs@localhost", TlsMode::None).unwrap();
     println!("Connected to db!");
 
     if arg == "create-admin" {

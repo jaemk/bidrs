@@ -1,5 +1,5 @@
 [package]
-name = "biddy"
+name = "bidrs"
 version = "0.1.0"
 authors = ["James Kominick <james.kominick@gmail.com>"]
 
@@ -17,8 +17,8 @@ rand = "0.3"
 r2d2 = "0.7"
 r2d2_postgres = "0.11"
 
-iron = "*"
-router = "*"
-plugin = "*"
-logger = "*"
-env_logger = "*"
+iron = "0.4.*"
+router = "0.4.*"
+plugin = "0.2.*"
+logger = "0.2.*"
+env_logger = "0.3.*"

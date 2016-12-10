@@ -36,6 +36,7 @@ pub fn hash(string: &str, salt: &[u8]) -> Result<Vec<u8>, String> {
 /// Do a constant time comparison of two hashed byte slices
 pub fn const_eq(one: &[u8], two: &[u8]) -> bool {
     let mut ok = true;
+    if one.len() != two.len() { ok = false; }
     for (a, b) in one.iter().zip(two.iter()) {
         if a != b { ok = false; }
     }

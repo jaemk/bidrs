@@ -91,7 +91,7 @@ impl SessionStore {
 
     /// Add a session to the session-store, return its token
     pub fn add(&mut self, sess: Session) -> String {
-        let token = sess.token.to_string();
+        let token = sess.token.clone();
         self.store.insert(token.clone(), sess);
         token
     }
@@ -143,6 +143,8 @@ impl SessionStore {
         }
     }
 
+    /// Delete from the SessionStore the Session associated with the given
+    /// Request's Auth-token
     pub fn delete_by_request(&mut self, request: &Request) -> Option<Session> {
         match request.headers.get::<Authorization<String>>() {
             Some(&Authorization(ref token)) => self.store.remove(token),

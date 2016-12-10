@@ -30,7 +30,7 @@ impl BeforeMiddleware for InfoLog {
 
 
 /// Session middleware handler to look for an auth/session token
-/// in the request.extensions typemap and either return an
+/// in the request.headers typemap and either return an
 /// unauthorized response or call the provided handler.
 /// This handler is intended to be returned from SessionMiddleware (AroundMiddleware)
 struct SessionMiddlewareHandler<H: Handler> {

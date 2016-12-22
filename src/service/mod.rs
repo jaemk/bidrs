@@ -4,17 +4,17 @@
 //!
 use std::sync::{Arc, Mutex};
 
-use super::iron::prelude::*;
-use super::router::Router;
-use super::env_logger;
-use super::logger::Logger;
+use iron::prelude::*;
+use router::Router;
+use env_logger;
+use logger::Logger;
 
-use super::r2d2::{Config, Pool};
-use super::r2d2_postgres::{PostgresConnectionManager, TlsMode};
+use r2d2::{Config, Pool};
+use r2d2_postgres::{PostgresConnectionManager, TlsMode};
 
-use super::handlers::{Handlers};
-use super::middleware::{InfoLog, SessionMiddleware};
-use super::sessions::{self, SessionStore};
+use handlers::{Handlers};
+use middleware::{InfoLog, SessionMiddleware};
+use sessions::{self, SessionStore};
 
 pub fn start() {
     // setup db connection pool

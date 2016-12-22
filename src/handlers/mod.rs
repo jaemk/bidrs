@@ -4,10 +4,10 @@
 //!
 use std::sync::{Arc, Mutex};
 
-use super::r2d2::Pool;
-use super::r2d2_postgres::PostgresConnectionManager;
+use r2d2::Pool;
+use r2d2_postgres::PostgresConnectionManager;
 
-use super::sessions::SessionStore;
+use sessions::SessionStore;
 
 pub type PgPool = Pool<PostgresConnectionManager>;
 pub type SStore = Arc<Mutex<SessionStore>>;
@@ -34,16 +34,16 @@ pub struct Msg {
 /// ```
 mod prelude {
     // iron stuff
-    pub use super::super::iron::{Handler, Request, Response, IronResult, status, headers};
+    pub use iron::{Handler, Request, Response, IronResult, status, headers};
 
     // extern crate stuff
-    pub use super::super::rustc_serialize::json;
-    pub use super::super::uuid::Uuid;
+    pub use rustc_serialize::json;
+    pub use uuid::Uuid;
 
     // our libs
-    pub use super::super::sql;
-    pub use super::super::auth;
-    pub use super::super::sessions::{Session, SessionStore};
+    pub use sql;
+    pub use auth;
+    pub use sessions::{Session, SessionStore};
 
     // local types
     pub use super::Msg;

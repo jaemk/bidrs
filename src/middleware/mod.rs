@@ -2,11 +2,11 @@
 //!
 use std::sync::{Arc, Mutex};
 
-use super::iron::{Request, IronResult, IronError, Handler, Response, status};
-use super::iron::middleware::{BeforeMiddleware, AroundMiddleware};
-use super::iron::headers::Authorization;
+use iron::{Request, IronResult, IronError, Handler, Response, status};
+use iron::middleware::{BeforeMiddleware, AroundMiddleware};
+use iron::headers::Authorization;
 
-use super::sessions::SessionStore;
+use sessions::SessionStore;
 
 type SStore = Arc<Mutex<SessionStore>>;
 

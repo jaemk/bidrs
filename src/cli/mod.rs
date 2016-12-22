@@ -4,11 +4,11 @@ use std::io;
 use std::io::Write;
 use std::collections::BTreeMap;
 
-use super::postgres::{Connection, TlsMode};
-use super::rustc_serialize::json::{Json, ToJson};
+use postgres::{Connection, TlsMode};
+use rustc_serialize::json::{Json, ToJson};
 
-use super::sql;
-use super::auth;
+use sql;
+use auth;
 
 #[derive(RustcEncodable, RustcDecodable)]
 struct Extra {

@@ -8,12 +8,12 @@ use std::collections::HashMap;
 use std::thread;
 use std::time;
 
-use super::uuid::Uuid;
-use super::chrono;
-use super::jwt::{encode, Header};
-use super::iron::Request;
-use super::iron::headers::Authorization;
-use super::iron::typemap;
+use uuid::Uuid;
+use chrono;
+use jwt::{encode, Header};
+use iron::Request;
+use iron::headers::Authorization;
+use iron::typemap;
 
 
 #[derive(RustcEncodable, RustcDecodable)]

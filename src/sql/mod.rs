@@ -2,9 +2,9 @@
 //!
 //! Database functions & model re-exports
 //!
-use super::postgres::{self, Connection};
-use super::uuid::Uuid;
-use super::rustc_serialize::json;
+use postgres::{self, Connection};
+use uuid::Uuid;
+use rustc_serialize::json;
 
 pub mod models;
 

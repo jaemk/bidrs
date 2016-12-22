@@ -2,8 +2,8 @@
 //!
 //! Hash and Salt generation
 //!
-use super::rand::{Rng, OsRng};
-use super::crypto::bcrypt;
+use rand::{Rng, OsRng};
+use crypto::bcrypt;
 
 
 /// Return a random 128bit salt or error

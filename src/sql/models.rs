@@ -3,10 +3,10 @@
 //! sql models mapping to database tables & impls to generate
 //! structs from rows
 //!
-use super::super::chrono;
-use super::super::uuid;
-use super::super::postgres;
-use super::super::rustc_serialize::json::{Json}; //, ToJson};
+use chrono;
+use uuid;
+use postgres;
+use rustc_serialize::json::{Json}; //, ToJson};
 
 // TODO: impl ToJson to_json for any chrono containing structs.
 //       export them as strings in their debug format.

@@ -35,6 +35,7 @@ impl BeforeMiddleware for InfoLog {
 /// This handler is intended to be returned from SessionMiddleware (AroundMiddleware)
 struct SessionMiddlewareHandler<H: Handler> {
     store: SStore,
+    exempt_url_roots: Vec<String>,
     handler: H,
 }
 impl<H: Handler> Handler for SessionMiddlewareHandler<H> {
@@ -51,7 +52,7 @@ impl<H: Handler> Handler for SessionMiddlewareHandler<H> {
                 let curr_path = request.url.path().iter()
                                        .map(|p| p.to_string())
                                        .next().unwrap_or("".to_string());
-                if curr_path != "login" {
+                if !self.exempt_url_roots.contains(&curr_path) {
                     return Ok(Response::with((status::Unauthorized, "please login")))
                 }
             }
@@ -66,11 +67,13 @@ impl<H: Handler> Handler for SessionMiddlewareHandler<H> {
 /// expired token requests.
 pub struct SessionMiddleware {
     store: SStore,
+    exempt_url_roots: Vec<String>,
 }
 impl SessionMiddleware {
-    pub fn new(store: SStore) -> SessionMiddleware {
+    pub fn new(store: SStore, exempt_url_roots: Vec<String>) -> SessionMiddleware {
         SessionMiddleware {
             store: store,
+            exempt_url_roots: exempt_url_roots,
         }
     }
 }
@@ -78,6 +81,7 @@ impl AroundMiddleware for SessionMiddleware {
     fn around(self, handler: Box<Handler>) -> Box<Handler> {
         Box::new(SessionMiddlewareHandler {
             store: self.store,
+            exempt_url_roots: self.exempt_url_roots,
             handler: handler,
         }) as Box<Handler>
     }

@@ -10,8 +10,9 @@ pub fn main() {
     if args.len() == 0 {
         println!("{}", usage);
     } else if args[0] == "serve" {
+        let quiet = args.len() != 1 && args[1] == "quiet";
         println!("serving...");
-        service::start();
+        service::start(quiet);
     } else {
         cli::consume(args);
     }

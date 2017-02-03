@@ -2,6 +2,8 @@
 //!
 //! Server, router, external resources setup
 //!
+mod routes;
+
 use std::sync::{Arc, Mutex};
 
 use iron::prelude::*;
@@ -16,7 +18,7 @@ use handlers::{Handlers};
 use middleware::{InfoLog, SessionMiddleware};
 use sessions::{self, SessionStore};
 
-pub fn start() {
+pub fn start(quiet: bool) {
     // setup db connection pool
     let db_url = "postgresql://bidrs:bidrs@localhost";
     let db_mgr = PostgresConnectionManager::new(db_url, TlsMode::None).expect("connection fail");
@@ -24,8 +26,9 @@ pub fn start() {
     println!(">> Connected to db!");
 
     // setup session store access and daemon
+    let exempt_url_roots = vec!["login".into(), "hello".into()];
     let session_store = Arc::new(Mutex::new(SessionStore::new(20 * 60)));
-    let session_middleware = SessionMiddleware::new(session_store.clone());
+    let session_middleware = SessionMiddleware::new(session_store.clone(), exempt_url_roots);
     sessions::start_daemon_sweeper(session_store.clone(), 30 * 60);
     println!(">> Session store created");
 
@@ -38,22 +41,18 @@ pub fn start() {
 
     // Setup endpoints
     let mut router = Router::new();
-    router.post("/login", handlers.login, "login");
-    router.post("/logout", handlers.logout, "logout");
-    router.get("/hello", handlers.hello, "hello");
-    router.get("/users", handlers.users, "users");
-    router.post("/msg", handlers.post_msg , "post_msg");
-    router.get("/msg", handlers.get_msg, "get_msg");
-    router.get("/whoami", handlers.whoami, "whoami");
+    routes::mount(&mut router, handlers);
 
     // Add middleware
     let mut chain = Chain::new(router);
     chain.link_before(log_before);          // general logger
-    chain.link_before(InfoLog);             // custom request-info log
+    if !quiet {
+        chain.link_before(InfoLog);         // custom request-info log
+    }
     chain.link_around(session_middleware);  // custom session middleware
     chain.link_after(log_after);            // general logger
 
-    let host = "127.0.0.1:5000";
+    let host = "0.0.0.0:3002";
     println!(">> Serving at {}", host);
     Iron::new(chain).http(host).unwrap();
 }

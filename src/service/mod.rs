@@ -5,6 +5,7 @@
 mod routes;
 
 use std::sync::{Arc, Mutex};
+use std::collections::HashSet;
 
 use iron::prelude::*;
 use router::Router;
@@ -25,9 +26,11 @@ pub fn start(quiet: bool) {
     let db_pool = Pool::new(Config::default(), db_mgr).expect("pool fail");
     println!(">> Connected to db!");
 
-    // setup session store access and daemon
-    let exempt_url_roots = vec!["login".into(), "hello".into()];
+    // setup session store access, exempt url roots, and store-cleaning daemon
     let session_store = Arc::new(Mutex::new(SessionStore::new(20 * 60)));
+    let mut exempt_url_roots = HashSet::new();
+    exempt_url_roots.insert("login");
+    exempt_url_roots.insert("hello");
     let session_middleware = SessionMiddleware::new(session_store.clone(), exempt_url_roots);
     sessions::start_daemon_sweeper(session_store.clone(), 30 * 60);
     println!(">> Session store created");
@@ -53,6 +56,7 @@ pub fn start(quiet: bool) {
     chain.link_after(log_after);            // general logger
 
     let host = "0.0.0.0:3002";
+    //let host = "0.0.0.0:80";
     println!(">> Serving at {}", host);
     Iron::new(chain).http(host).unwrap();
 }

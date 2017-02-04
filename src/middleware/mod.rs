@@ -1,6 +1,7 @@
 //! Custom Middleware
 //!
 use std::sync::{Arc, Mutex};
+use std::collections::HashSet;
 
 use iron::{Request, IronResult, IronError, Handler, Response, status};
 use iron::middleware::{BeforeMiddleware, AroundMiddleware};
@@ -35,24 +36,24 @@ impl BeforeMiddleware for InfoLog {
 /// This handler is intended to be returned from SessionMiddleware (AroundMiddleware)
 struct SessionMiddlewareHandler<H: Handler> {
     store: SStore,
-    exempt_url_roots: Vec<String>,
+    exempt_url_roots: HashSet<&'static str>,
     handler: H,
 }
 impl<H: Handler> Handler for SessionMiddlewareHandler<H> {
     fn handle(&self, request: &mut Request) -> IronResult<Response> {
-        { // move to inner scope so store lock gets dropped before calling the given handle
-            let mut store = self.store.lock().unwrap();
-            let valid = match request.headers.get::<Authorization<String>>() {
-                Some(token) => {
-                    store.check_delete(&token)
-                },
-                _ => false,
-            };
-            if !valid {
-                let curr_path = request.url.path().iter()
-                                       .map(|p| p.to_string())
-                                       .next().unwrap_or("".to_string());
-                if !self.exempt_url_roots.contains(&curr_path) {
+        { // move to inner scope so borrow in request is dropped before calling the handler
+            let url_path = request.url.path();
+            let url_root = url_path.iter().next().unwrap();
+            if !url_root.is_empty() && !self.exempt_url_roots.contains(url_root) {
+                // note: store-lock needs to get dropped before the handler is called below
+                let mut store = self.store.lock().unwrap();
+                let valid = match request.headers.get::<Authorization<String>>() {
+                    Some(token) => {
+                        store.check_delete(&token)
+                    },
+                    _ => false,
+                };
+                if !valid {
                     return Ok(Response::with((status::Unauthorized, "please login")))
                 }
             }
@@ -67,10 +68,10 @@ impl<H: Handler> Handler for SessionMiddlewareHandler<H> {
 /// expired token requests.
 pub struct SessionMiddleware {
     store: SStore,
-    exempt_url_roots: Vec<String>,
+    exempt_url_roots: HashSet<&'static str>,
 }
 impl SessionMiddleware {
-    pub fn new(store: SStore, exempt_url_roots: Vec<String>) -> SessionMiddleware {
+    pub fn new(store: SStore, exempt_url_roots: HashSet<&'static str>) -> SessionMiddleware {
         SessionMiddleware {
             store: store,
             exempt_url_roots: exempt_url_roots,

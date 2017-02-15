@@ -4,19 +4,28 @@ version = "0.1.0"
 authors = ["James Kominick <james.kominick@gmail.com>"]
 
 [dependencies]
-postgres = { version = "0.13", features = ["with-uuid", "with-chrono", "with-rustc-serialize"] }
-fallible-iterator = "0.1.3"
+clap = "2.20.3"
+rpassword = "0.3"
+error-chain = "0.9.0"
+
 rustc-serialize = "0.3"
-uuid = { version = "0.3", features = ["v4", "rustc-serialize"] }
+json = "*"
+
+uuid = { version = "0.4", features = ["v4", "rustc-serialize"] }
 chrono = { version = "0.2", features = ["rustc-serialize"] }
+
 jsonwebtoken = "1"
 lazy_static = "0.1.*"
 rust-crypto = "^0.2"
 rand = "0.3"
+dotenv = "0.8.0"
 
 r2d2 = "0.7"
 r2d2_postgres = "0.11"
+postgres = { version = "0.13", features = ["with-uuid" , "with-chrono", "with-rustc-serialize"] }
+fallible-iterator = "0.1.3"
 
+# Iron stuff
 iron = "0.4.*"
 router = "0.4.*"
 plugin = "0.2.*"

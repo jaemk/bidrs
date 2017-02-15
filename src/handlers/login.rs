@@ -7,16 +7,16 @@ use std::io::Read;
 use super::prelude::*;
 
 
-#[derive(RustcEncodable, RustcDecodable)]
-struct ApiAuth {
-    email: String,
-    password: String,
-}
-#[derive(Debug, RustcEncodable, RustcDecodable)]
-struct AuthSuccess {
-    token: String,
-    admin: bool,
-}
+//#[derive(RustcEncodable, RustcDecodable)]
+//struct ApiAuth {
+//    email: String,
+//    password: String,
+//}
+//#[derive(Debug, RustcEncodable, RustcDecodable)]
+//struct AuthSuccess {
+//    token: String,
+//    admin: bool,
+//}
 pub struct LoginHandler {
     db_pool: PgPool,
     s_store: SStore,
@@ -34,7 +34,7 @@ impl Handler for LoginHandler {
         // get post info
         let mut req_body = String::new();
         request.body.read_to_string(&mut req_body).unwrap();
-        let auth_info: ApiAuth = try_server_error!(json::decode(&req_body));
+        let auth_info = try_server_error!(json::parse(&req_body));
 
         // look for user by email
         let conn = self.db_pool.get().unwrap();

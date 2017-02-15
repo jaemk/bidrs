@@ -16,7 +16,8 @@ impl UsersHandler {
 impl Handler for UsersHandler {
     fn handle(&self, _request: &mut Request) -> IronResult<Response> {
         let conn = self.db_pool.get().unwrap();
-        let users = sql::select_users_all(&conn);
+        //let users = sql::select_users_all(&conn);
+        let users = vec![];
         let payload = json::encode(&users).unwrap();
         Ok(Response::with((status::Ok, payload)))
     }

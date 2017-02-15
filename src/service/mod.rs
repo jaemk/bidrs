@@ -12,18 +12,40 @@ use router::Router;
 use env_logger;
 use logger::Logger;
 
+use std::env;
+use dotenv::dotenv;
 use r2d2::{Config, Pool};
-use r2d2_postgres::{PostgresConnectionManager, TlsMode};
+use r2d2_postgres::{PostgresConnectionManager, TlsMode as r2d2TlsMode};
+use postgres::{Connection, TlsMode as PgTlsMode};
 
 use handlers::{Handlers};
 use middleware::{InfoLog, SessionMiddleware};
 use sessions::{self, SessionStore};
 
-pub fn start(quiet: bool) {
+
+/// Create a new diesel postgres database connection
+pub fn establish_connection() -> Connection {
+    dotenv().ok();
+    let db_url = env::var("DATABASE_URL").expect("DATABASE_URL must be set");
+    Connection::connect(db_url.as_ref(), PgTlsMode::None)
+        .expect(&format!("Error connecting to {}", db_url))
+}
+
+
+/// Create a new r2d2 pool of diesel postgres connections
+pub fn establish_pool_connection() -> Pool<PostgresConnectionManager> {
+    dotenv().ok();
+    let db_url = env::var("DATABASE_URL").expect("DATABASE_URL must be set");
+    let db_mgr = PostgresConnectionManager::new(db_url, r2d2TlsMode::None)
+        .expect("Connection fail");
+    Pool::new(Config::default(), db_mgr).expect("Failed to create pool")
+}
+
+
+/// Start up the server
+pub fn start(host: &str, quiet: bool) {
     // setup db connection pool
-    let db_url = "postgresql://bidrs:bidrs@localhost";
-    let db_mgr = PostgresConnectionManager::new(db_url, TlsMode::None).expect("connection fail");
-    let db_pool = Pool::new(Config::default(), db_mgr).expect("pool fail");
+    let db_pool = establish_pool_connection();
     println!(">> Connected to db!");
 
     // setup session store access, exempt url roots, and store-cleaning daemon
@@ -48,15 +70,16 @@ pub fn start(quiet: bool) {
 
     // Add middleware
     let mut chain = Chain::new(router);
-    chain.link_before(log_before);          // general logger
     if !quiet {
+        chain.link_before(log_before);      // general logger
         chain.link_before(InfoLog);         // custom request-info log
+        chain.link_after(log_after);        // general logger
     }
     chain.link_around(session_middleware);  // custom session middleware
-    chain.link_after(log_after);            // general logger
 
-    let host = "0.0.0.0:3002";
+    //let host = "0.0.0.0:3002";
     //let host = "0.0.0.0:80";
     println!(">> Serving at {}", host);
+    if quiet { println!(">> ... quietly") }
     Iron::new(chain).http(host).unwrap();
 }

@@ -18,7 +18,7 @@ impl Handler for LogoutHandler {
     fn handle(&self, request: &mut Request) -> IronResult<Response> {
         let mut store = self.store.lock().unwrap();
         store.delete_by_request(request);
-        let msg = Msg { msg: "logout".to_string() };
-        Ok(Response::with((status::Ok, json::encode(&msg).unwrap())))
+        let msg = object!{ "msg" => "logout".to_string() };
+        Ok(Response::with((status::Ok, msg.dump())))
     }
 }

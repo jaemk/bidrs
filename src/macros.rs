@@ -1,6 +1,7 @@
 //! Project macros
 //!
 
+
 #[macro_export]
 /// Intended for inserting a row and returning
 /// a Result with either a full instance of the table (sql::model)
@@ -36,18 +37,19 @@ macro_rules! try_insert_to_model {
                             $var : $arg,
                          )*
                     }),
-                    _ => Err("return error".to_string())
+                    _ => bail!("return error")
                 }
             }
             Err(postgres::error::Error::Db(err)) => {
                 let message = err.message.to_string();
-                Err(err.detail.unwrap_or("no details".to_string()) + " | " +
+                bail!(err.detail.unwrap_or("no details".to_string()) + " | " +
                     message.as_str())
             }
-            _ => Err("Conversion or IO error".to_string())
+            _ => bail!("Conversion or IO error".to_string())
         }
     }
 }
+
 
 #[macro_export]
 /// Intended for pulling out the first row of
@@ -71,6 +73,7 @@ macro_rules! query_or_none {
     }
 }
 
+
 #[macro_export]
 /// Intended for rolling the all the rows of a query result into a vec over the
 /// designated model-struct.
@@ -91,6 +94,7 @@ macro_rules! query_coll {
               .collect::<Vec<_>>()
     }
 }
+
 
 #[macro_export]
 /// Try an expr, return early with a provided error or default

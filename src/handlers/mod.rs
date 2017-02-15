@@ -13,19 +13,13 @@ pub type PgPool = Pool<PostgresConnectionManager>;
 pub type SStore = Arc<Mutex<SessionStore>>;
 
 // handler defs
-mod login;
-mod logout;
 mod hello;
-mod msg;
-mod users;
-mod whoami;
+//mod login;
+//mod logout;
+//mod msg;
+//mod users;
+//mod whoami;
 
-
-#[derive(RustcEncodable, RustcDecodable)]
-/// Generic response message to be encoded as json
-pub struct Msg {
-    msg: String,
-}
 
 /// handler prelude of imports needed by handlers, so handler mods
 /// can just do a:
@@ -36,17 +30,11 @@ mod prelude {
     // iron stuff
     pub use iron::{Handler, Request, Response, IronResult, status, headers};
 
-    // extern crate stuff
-    pub use rustc_serialize::json;
-    pub use uuid::Uuid;
-
     // our libs
-    pub use sql;
     pub use auth;
     pub use sessions::{Session, SessionStore};
 
     // local types
-    pub use super::Msg;
     pub use super::PgPool;
     pub use super::SStore;
 
@@ -56,8 +44,8 @@ mod prelude {
             Some(m) => m,
             None => "invalid credentials".to_string(),
         };
-        let msg = Msg { msg: _msg };
-        return Ok(Response::with((status::Unauthorized, json::encode(&msg).unwrap())))
+        let msg = object!{"msg" => _msg};
+        return Ok(Response::with((status::Unauthorized, msg.dump())))
     }
 }
 
@@ -66,23 +54,23 @@ mod prelude {
 /// Initializes all handlers with any external resources they need
 pub struct Handlers {
     pub hello: hello::HelloHandler,
-    pub login: login::LoginHandler,
-    pub logout: logout::LogoutHandler,
-    pub users: users::UsersHandler,
-    pub post_msg: msg::PostMsgHandler,
-    pub get_msg: msg::GetMsgHandler,
-    pub whoami: whoami::WhoamiHandler,
+    //pub login: login::LoginHandler,
+    //pub logout: logout::LogoutHandler,
+    //pub users: users::UsersHandler,
+    //pub post_msg: msg::PostMsgHandler,
+    //pub get_msg: msg::GetMsgHandler,
+    //pub whoami: whoami::WhoamiHandler,
 }
 impl Handlers {
     pub fn new(db_pool: PgPool, s_store: SStore) -> Handlers {
         Handlers {
             hello: hello::HelloHandler::new(),
-            post_msg: msg::PostMsgHandler::new(),
-            get_msg: msg::GetMsgHandler::new(),
-            login: login::LoginHandler::new(db_pool.clone(), s_store.clone()),
-            logout: logout::LogoutHandler::new(s_store.clone()),
-            users: users::UsersHandler::new(db_pool.clone()),
-            whoami: whoami::WhoamiHandler::new(db_pool.clone(), s_store.clone()),
+            //post_msg: msg::PostMsgHandler::new(),
+            //get_msg: msg::GetMsgHandler::new(),
+            //login: login::LoginHandler::new(db_pool.clone(), s_store.clone()),
+            //logout: logout::LogoutHandler::new(s_store.clone()),
+            //users: users::UsersHandler::new(db_pool.clone()),
+            //whoami: whoami::WhoamiHandler::new(db_pool.clone(), s_store.clone()),
         }
     }
 }

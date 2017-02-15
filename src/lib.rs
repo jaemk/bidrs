@@ -1,11 +1,21 @@
+#![recursion_limit = "1024"]
+
 extern crate chrono;
 extern crate uuid;
+
 extern crate rustc_serialize;
+#[macro_use]
+extern crate json;
+
 extern crate jsonwebtoken as jwt;
+
 #[macro_use]
 extern crate lazy_static;
 #[macro_use]
 extern crate env_logger;
+extern crate dotenv;
+extern crate rpassword;
+
 extern crate crypto;
 extern crate rand;
 
@@ -21,9 +31,15 @@ extern crate plugin;
 extern crate logger;
 
 #[macro_use]
+extern crate error_chain;
+pub mod errors {
+    error_chain! { }
+}
+
+#[macro_use]
 pub mod macros;
 
-pub mod sql;
+pub mod models;
 pub mod cli;
 pub mod sessions;
 pub mod service;

@@ -1,0 +1,10 @@
+drop table bids;
+drop table profiles;
+drop table payment_information;
+drop table items;
+drop table bidders;
+drop table organizations;
+drop table users;
+drop table auth;
+drop function notify_trigger() cascade;
+drop function update_date_modified() cascade;

@@ -74,8 +74,6 @@ pub fn start(host: &str, quiet: bool) {
     }
     chain.link_around(session_middleware);  // custom session middleware
 
-    //let host = "0.0.0.0:3002";
-    //let host = "0.0.0.0:80";
     println!(">> Serving at {}", host);
     if quiet { println!(">> ... quietly") }
     Iron::new(chain).http(host).unwrap();

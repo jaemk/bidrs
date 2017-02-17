@@ -11,6 +11,6 @@ impl HelloHandler {
 }
 impl Handler for HelloHandler {
     fn handle(&self, _: &mut Request) -> IronResult<Response> {
-        Ok(Response::with((status::Ok, "hello!")))
+        Ok(Response::with((status::Ok, "{\"data\": \"hello!\"}")))
     }
 }

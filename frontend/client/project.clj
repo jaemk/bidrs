@@ -13,7 +13,8 @@
                  [ring.middleware.logger "0.5.0"]
                  [compojure "1.5.0"]
                  [environ "1.0.3"]
-                 [org.omcljs/om "1.0.0-alpha36"]]
+                 [reagent "0.6.0-rc"]
+                 [cljs-ajax "0.5.8"]]
 
   :plugins [[lein-cljsbuild "1.1.3"]
             [lein-environ "1.0.3"]]
@@ -40,14 +41,14 @@
               [{:id "app"
                 :source-paths ["src/cljs" "src/cljc"]
 
-                :figwheel true
+                :figwheel {:websocket-host "jameskominick.com"}
                 ;; Alternatively, you can configure a function to run every time figwheel reloads.
                 ;; :figwheel {:on-jsload "client.core/on-figwheel-reload"}
 
                 :compiler {:main client.core
                            :asset-path "js/compiled/out"
-                           :output-to "resources/public/js/compiled/client.js"
-                           :output-dir "resources/public/js/compiled/out"
+                           :output-to "../../static/client/js/compiled/client.js"
+                           :output-dir "../../static/client/js/compiled/out"
                            :source-map-timestamp true}}
 
                {:id "test"
@@ -60,8 +61,10 @@
                 :source-paths ["src/cljs" "src/cljc"]
                 :jar true
                 :compiler {:main client.core
-                           :output-to "resources/public/js/compiled/client.js"
-                           :output-dir "target"
+                           ;;:output-to "resources/public/js/compiled/client.js"
+                           ;;:output-dir "target"
+                           :output-to "../../static/client/js/compiled/client.js"
+                           :output-dir "../../static/client/js/target"
                            :source-map-timestamp true
                            :optimizations :advanced
                            :pretty-print false}}]}
@@ -74,6 +77,7 @@
   :figwheel {;; :http-server-root "public"       ;; serve static assets from resources/public/
              ;; :server-port 3449                ;; default
              ;; :server-ip "127.0.0.1"           ;; default
+             :server-ip "0.0.0.0"
              :css-dirs ["resources/public/css"]  ;; watch and update CSS
 
              ;; Instead of booting a separate server on its own port, we embed

@@ -6,6 +6,10 @@ mod routes;
 
 use std::sync::{Arc, Mutex};
 
+use std::path::Path;
+use mount::Mount;
+use staticfile::Static;
+
 use iron::prelude::*;
 use router::Router;
 use env_logger;
@@ -74,7 +78,10 @@ pub fn start(host: &str, quiet: bool) {
     }
     chain.link_around(session_middleware);  // custom session middleware
 
+    let mut mount = Mount::new();
+    mount.mount("/", chain).mount("/static/", Static::new(Path::new("../static")));
+
     println!(">> Serving at {}", host);
     if quiet { println!(">> ... quietly") }
-    Iron::new(chain).http(host).unwrap();
+    Iron::new(mount).http(host).unwrap();
 }

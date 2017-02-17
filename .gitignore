@@ -2,3 +2,4 @@ target
 Cargo.lock
 .migrant
 .env
+static/**/js/compiled/

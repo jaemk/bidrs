@@ -29,6 +29,7 @@ mod login;
 mod prelude {
     // iron stuff
     pub use iron::{Handler, Request, Response, IronResult, status, headers};
+    pub use iron::modifiers::Redirect;
     pub use rustc_serialize::json;
 
     // our libs

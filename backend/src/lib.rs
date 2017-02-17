@@ -29,6 +29,8 @@ extern crate iron;
 extern crate router;
 extern crate plugin;
 extern crate logger;
+extern crate mount;
+extern crate staticfile;
 
 #[macro_use]
 extern crate error_chain;

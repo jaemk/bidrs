@@ -12,6 +12,7 @@ create table users (
     auth_id       integer NOT NULL UNIQUE REFERENCES "auth" ("id"),
     email         text UNIQUE NOT NULL,
     uuid_         uuid UNIQUE NOT NULL,
+    level_        integer NOT NULL CHECK (level_ >= 0),
     date_created  timestamp WITH TIME ZONE NOT NULL DEFAULT NOW(),
     date_modified timestamp WITH TIME ZONE NOT NULL DEFAULT NOW()
 );
@@ -52,7 +53,6 @@ create table profiles (
     user_id         integer NOT NULL UNIQUE REFERENCES "users" ("id") ON DELETE CASCADE,
     bidder_id       integer REFERENCES "bidders" ("id"),
     payment_info_id integer REFERENCES "payment_information" ("id"),
-    level_          integer NOT NULL CHECK (level_ >= 0),
     is_primary      boolean DEFAULT FALSE,
     name            text,
     phone           text,

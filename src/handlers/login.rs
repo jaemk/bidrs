@@ -36,6 +36,7 @@ impl Handler for LoginHandler {
         // get post info
         let mut req_body = String::new();
         request.body.read_to_string(&mut req_body).unwrap();
+        println!("{:?}", req_body);
         let auth_info: ApiAuth = try_server_error!(json::decode(&req_body));
 
         // look for user by email
@@ -59,7 +60,7 @@ impl Handler for LoginHandler {
 
         // auth was successful, initialize a new session
         let new_sess = Session::new(&user.uuid_);
-        let is_admin = sql::user_level_by_userid(&conn, &user.id).unwrap_or(0) > 9;
+        let is_admin = user.level_ > 9;
         let resp = AuthSuccess {
             token: new_sess.token.clone(),
             admin: is_admin,

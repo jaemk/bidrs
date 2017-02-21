@@ -1,4 +1,5 @@
 use postgres::Connection;
+use uuid::Uuid;
 use models::*;
 
 
@@ -7,11 +8,14 @@ pub fn select_user_by_email(conn: &Connection, email: &str) -> Option<User> {
     query_or_none!(conn.query(qs, &[&email]), User)
 }
 
-
-pub fn user_level_by_userid(conn:&Connection, id: &i32) -> Option<i32> {
-    let qs = "select level_ from profiles where user_id=$1";
-    return match conn.query(qs, &[&id]).unwrap().iter().next() {
-        Some(row) => Some(row.get(0)),
-        _ => None
-    }
+pub fn select_user_by_uuid(conn: &Connection, uuid_: &Uuid) -> Option<User> {
+    let qs = "select * from users where uuid_=$1 limit 1";
+    query_or_none!(conn.query(qs, &[&uuid_]), User)
 }
+
+pub fn select_profile_by_user(conn: &Connection, user_id: &i32) -> Option<Profile> {
+    let qs = "select * from profiles where user_id=$1 limit 1";
+    query_or_none!(conn.query(qs, &[&user_id]), Profile)
+}
+
+

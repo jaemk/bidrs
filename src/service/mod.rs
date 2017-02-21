@@ -79,7 +79,9 @@ pub fn start(host: &str, quiet: bool) {
     chain.link_around(session_middleware);  // custom session middleware
 
     let mut mount = Mount::new();
-    mount.mount("/", chain).mount("/", Static::new(Path::new("static")));
+    mount
+        .mount("/", chain)
+        .mount("/static/", Static::new(Path::new("static")));
 
     println!(">> Serving at {}", host);
     if quiet { println!(">> ... quietly") }

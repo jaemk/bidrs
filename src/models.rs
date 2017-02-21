@@ -68,6 +68,7 @@ pub struct User {
     pub auth_id: i32,
     pub email: String,
     pub uuid_: uuid::Uuid,
+    pub level_: i32,
     pub date_created: chrono::DateTime<chrono::UTC>,
     pub date_modified: chrono::DateTime<chrono::UTC>,
 }
@@ -83,8 +84,9 @@ impl User {
             auth_id: row.get(1),
             email: row.get(2),
             uuid_: row.get(3),
-            date_created: row.get(4),
-            date_modified: row.get(5),
+            level_: row.get(4),
+            date_created: row.get(5),
+            date_modified: row.get(6),
         }
     }
 }
@@ -94,23 +96,26 @@ pub struct NewUser {
     pub auth_id: i32,
     pub email: String,
     pub uuid_: uuid::Uuid,
+    pub level_: i32,
 }
 impl NewUser {
-    pub fn new(email: &str, auth: &Auth) -> NewUser {
+    pub fn new(email: &str, auth: &Auth, level_: i32) -> NewUser {
         let uuid_ = uuid::Uuid::new_v4();
         NewUser {
             auth_id: auth.id,
             email: email.into(),
             uuid_: uuid_,
+            level_: level_
         }
     }
     pub fn create(self, conn: &Connection) -> Result<User> {
-        let qs = "insert into users (auth_id, email, uuid_) values ($1, $2, $3) \
+        let qs = "insert into users (auth_id, email, uuid_, level_) values ($1, $2, $3, $4) \
                   returning id, date_created, date_modified";
-        try_insert_to_model!(conn.query(qs, &[&self.auth_id, &self.email, &self.uuid_]) ;
+        try_insert_to_model!(conn.query(qs, &[&self.auth_id, &self.email, &self.uuid_, &self.level_]) ;
                              User ;
                              id: 0, date_created: 1, date_modified: 2 ;
-                             auth_id: self.auth_id, email: self.email, uuid_: self.uuid_)
+                             auth_id: self.auth_id, email: self.email, uuid_: self.uuid_,
+                             level_: self.level_)
     }
 }
 
@@ -276,7 +281,6 @@ pub struct Profile {
     pub user_id: i32,
     pub bidder_id: Option<i32>,
     pub payment_info_id: Option<i32>,
-    pub level_: i32,
     pub is_primary: bool,
     pub name: String,
     pub phone: Option<String>,
@@ -291,13 +295,12 @@ impl Profile {
             user_id: row.get(1),
             bidder_id: row.get(2),
             payment_info_id: row.get(3),
-            level_: row.get(4),
-            is_primary: row.get(5),
-            name: row.get(6),
-            phone: row.get(7),
-            extra: row.get(8),
-            date_created: row.get(9),
-            date_modified: row.get(10),
+            is_primary: row.get(4),
+            name: row.get(5),
+            phone: row.get(6),
+            extra: row.get(7),
+            date_created: row.get(8),
+            date_modified: row.get(9),
         }
     }
 }
@@ -307,7 +310,6 @@ pub struct NewProfile {
     pub user_id: i32,
     pub bidder_id: Option<i32>,
     pub payment_info_id: Option<i32>,
-    pub level_: i32,
     pub is_primary: bool,
     pub name: String,
     pub phone: Option<String>,
@@ -315,26 +317,26 @@ pub struct NewProfile {
 }
 impl NewProfile {
     pub fn new(user_id: i32, bidder_id: Option<i32>, payment_info_id: Option<i32>,
-               level_: i32, is_primary: bool, name: &str, phone: Option<&str>,
+               is_primary: bool, name: &str, phone: Option<&str>,
                extra: Option<Json>) -> NewProfile {
         NewProfile {
             user_id: user_id, bidder_id: bidder_id, payment_info_id: payment_info_id,
-            level_: level_, is_primary: is_primary, name: name.into(), phone: phone.map(|p| p.into()),
+            is_primary: is_primary, name: name.into(), phone: phone.map(|p| p.into()),
             extra: extra,
         }
 
     }
     pub fn create(self, conn: &Connection) -> Result<Profile> {
-        let qs = "insert into profiles (user_id, bidder_id, payment_info_id, level_, \
-                  is_primary, name, phone, extra) values ($1, $2, $3, $4, $5, $6, $7, $8) \
+        let qs = "insert into profiles (user_id, bidder_id, payment_info_id, \
+                  is_primary, name, phone, extra) values ($1, $2, $3, $4, $5, $6, $7) \
                   returning id, date_created, date_modified";
         try_insert_to_model!(conn.query(qs, &[&self.user_id, &self.bidder_id, &self.payment_info_id,
-                                              &self.level_, &self.is_primary, &self.name,
+                                              &self.is_primary, &self.name,
                                               &self.phone, &self.extra]) ;
                              Profile ;
                              id: 0, date_created: 1, date_modified: 2 ;
                              user_id: self.user_id, bidder_id: self.bidder_id,
-                             payment_info_id: self.payment_info_id, level_: self.level_,
+                             payment_info_id: self.payment_info_id,
                              is_primary: self.is_primary, name: self.name,
                              phone: self.phone, extra: self.extra)
     }

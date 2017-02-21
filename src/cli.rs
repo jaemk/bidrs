@@ -81,9 +81,13 @@ pub fn create_user() -> Result<models::User> {
                                .secure()
                                .capture()
                                .chain_err(|| "Prompter Error")?;
+    let new_level = Prompter::new("$ User level >> ").capture()
+                             .chain_err(|| "prompter error")?
+                             .parse::<i32>()
+                             .chain_err(|| "error parsing user.level")?;
     let new_auth: models::Auth = models::NewAuth::new(&new_password).create(&conn)
         .chain_err(|| "Error creating auth")?;
-    let new_user: models::User = models::NewUser::new(&new_email, &new_auth)
+    let new_user: models::User = models::NewUser::new(&new_email, &new_auth, new_level)
         .create(&conn).chain_err(|| "Error creating user")?;
     println!("User created with id, email: {}, {}", new_user.id, new_user.email);
     Ok(new_user)
@@ -154,7 +158,7 @@ pub fn create_payment_info() -> Result<models::PaymentInfo> {
 pub fn create_profile() -> Result<models::Profile> {
     println!("Creating new profile...");
     let conn = establish_connection();
-    let args = ["user_id", "bidder_id", "payment_info_id", "level",
+    let args = ["user_id", "bidder_id", "payment_info_id",
                 "is_primary", "name", "phone"].iter().map(|arg| {
                     Prompter::new(&format!("$ {} >> ", arg))
                             .capture()
@@ -171,10 +175,9 @@ pub fn create_profile() -> Result<models::Profile> {
         args[0].parse::<i32>().chain_err(|| "user_id error")?,
         if args[1].is_empty() { None } else { Some(args[1].parse::<i32>().chain_err(|| "bidder_id error")?) },
         if args[2].is_empty() { None } else { Some(args[2].parse::<i32>().chain_err(|| "payment_info_id error")?) },
-        args[3].parse::<i32>().chain_err(|| "level error")?,
-        args[4].parse::<bool>().chain_err(|| "is_primary error")?,
-        &args[5],
-        if args[6].is_empty() { None } else { Some(&args[6]) },
+        args[3].parse::<bool>().chain_err(|| "is_primary error")?,
+        &args[4],
+        if args[5].is_empty() { None } else { Some(&args[5]) },
         new_extra,
     ).create(&conn).chain_err(|| "Error creating profile")?;
     println!("Profile created with id, name: {}, {}",

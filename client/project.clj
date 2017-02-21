@@ -10,15 +10,19 @@
                  [org.clojure/clojurescript "1.9.229"]
                  [org.clojure/core.async "0.2.395"
                   :exclusions [org.clojure/tools.reader]]
-                 [reagent "0.6.0"]
-                 [cljsjs/material-ui "0.16.7-0"]]
+                 [reagent "0.6.0-alpha"
+                  :exclusions [org.clojure/tools.reader cljsjs/react cljsjs/react-dom]]
+                 [cljs-react-material-ui "0.2.37"]
+                 [cljs-ajax "0.5.8"]
+                 [secretary "1.2.3"]]
 
   :plugins [[lein-figwheel "0.5.9"]
             [lein-cljsbuild "1.1.5" :exclusions [[org.clojure/clojure]]]]
 
   :source-paths ["src"]
 
-  :clean-targets ^{:protect false} ["resources/public/js/compiled" "target"]
+  ;:clean-targets ^{:protect false} ["resources/public/js/compiled" "target"]
+  :clean-targets ^{:protect false} ["../static/client/js/compiled" "target"]
 
   :cljsbuild {:builds
               [{:id "dev"
@@ -32,12 +36,15 @@
                            ;; in the default browser once Figwheel has
                            ;; started and complied your application.
                            ;; Comment this out once it no longer serves you.
-                           :open-urls ["http://localhost:3449/index.html"]}
+                           ;:open-urls ["http://localhost:3449/index.html"]}
+                           }
 
                 :compiler {:main client.core
-                           :asset-path "js/compiled/out"
-                           :output-to "resources/public/js/compiled/client.js"
-                           :output-dir "resources/public/js/compiled/out"
+                           :asset-path "/static/client/js/compiled/out"
+                           ;:output-to "resources/public/js/compiled/client.js"
+                           :output-to "../static/client/js/compiled/client.js"
+                           ;:output-dir "resources/public/js/compiled/out"
+                           :output-dir "../static/client/js/compiled/out"
                            :source-map-timestamp true
                            ;; To console.log CLJS data-structures make sure you enable devtools in Chrome
                            ;; https://github.com/binaryage/cljs-devtools
@@ -47,14 +54,16 @@
                ;; lein cljsbuild once min
                {:id "min"
                 :source-paths ["src"]
-                :compiler {:output-to "resources/public/js/compiled/client.js"
+                :compiler {
+                           ;:output-to "resources/public/js/compiled/client.js"
+                           :output-to "../static/client/js/compiled/client_min.js"
                            :main client.core
                            :optimizations :advanced
                            :pretty-print false}}]}
 
   :figwheel {;; :http-server-root "public" ;; default and assumes "resources"
              :server-port 3449
-             :server-ip "jameskominick.com"
+             :server-ip "localhost"
 
              :css-dirs ["resources/public/css"] ;; watch and update CSS
 

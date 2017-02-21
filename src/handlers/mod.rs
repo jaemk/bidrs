@@ -15,10 +15,10 @@ pub type SStore = Arc<Mutex<SessionStore>>;
 // handler defs
 mod hello;
 mod login;
+mod info;
 //mod logout;
 //mod msg;
 //mod users;
-//mod whoami;
 
 
 /// handler prelude of imports needed by handlers, so handler mods
@@ -62,22 +62,22 @@ mod prelude {
 pub struct Handlers {
     pub hello: hello::HelloHandler,
     pub login: login::LoginHandler,
+    pub info: info::InfoHandler,
     //pub logout: logout::LogoutHandler,
     //pub users: users::UsersHandler,
     //pub post_msg: msg::PostMsgHandler,
     //pub get_msg: msg::GetMsgHandler,
-    //pub whoami: whoami::WhoamiHandler,
 }
 impl Handlers {
     pub fn new(db_pool: PgPool, s_store: SStore) -> Handlers {
         Handlers {
             hello: hello::HelloHandler::new(),
             login: login::LoginHandler::new(db_pool.clone(), s_store.clone()),
+            info: info::InfoHandler::new(db_pool.clone(), s_store.clone()),
             //post_msg: msg::PostMsgHandler::new(),
             //get_msg: msg::GetMsgHandler::new(),
             //logout: logout::LogoutHandler::new(s_store.clone()),
             //users: users::UsersHandler::new(db_pool.clone()),
-            //whoami: whoami::WhoamiHandler::new(db_pool.clone(), s_store.clone()),
         }
     }
 }

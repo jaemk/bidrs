@@ -1,3 +1,10 @@
-h1 {
-  text-decoration: underline;
+/* Client.css */
+/* some style */
+
+body {
+    padding: 0px;
+    margin: 0px;
+}
+#app {
+    text-align: center;
 }

@@ -189,8 +189,8 @@ pub fn create_profile() -> Result<models::Profile> {
 pub fn create_item() -> Result<models::Item> {
     println!("Creating new item...");
     let conn = establish_connection();
-    let args = ["organization_id", "is_goal", "title",
-                "description", "value [in cents]", "min_bid [in cents]"].iter().map(|arg| {
+    let args = ["organization_id", "is_goal", "title", "description",
+                "value [in cents]", "starting [in cents]", "min_bid [in cents]"].iter().map(|arg| {
                     Prompter::new(&format!("$ {} >> ", arg))
                             .capture()
                             .expect("Prompter Error")
@@ -200,7 +200,8 @@ pub fn create_item() -> Result<models::Item> {
         args[1].parse::<bool>().chain_err(|| "is_goal error")?,
         &args[2], &args[3],
         args[4].parse::<i64>().chain_err(|| "value error")?,
-        args[5].parse::<i64>().chain_err(|| "min_bid error")?,
+        args[5].parse::<i64>().chain_err(|| "starting error")?,
+        args[6].parse::<i64>().chain_err(|| "min_bid error")?,
     ).create(&conn).chain_err(|| "Error creating item")?;
     println!("Item created with id, title: {}, {}",
              new_item.id, new_item.title);

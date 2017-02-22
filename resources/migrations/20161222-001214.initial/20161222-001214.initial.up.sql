@@ -72,6 +72,7 @@ create table items (
     title            text,
     description      text,
     value            bigint,
+    starting         bigint,
     min_bid          bigint,
     date_created     timestamp WITH TIME ZONE NOT NULL DEFAULT NOW(),
     date_modified    timestamp WITH TIME ZONE NOT NULL DEFAULT NOW()

@@ -354,6 +354,7 @@ pub struct Item {
     pub title: String,
     pub description: String,
     pub value: i64,
+    pub starting: i64,
     pub min_bid: i64,
     pub date_created: chrono::DateTime<chrono::UTC>,
     pub date_modified: chrono::DateTime<chrono::UTC>,
@@ -368,9 +369,10 @@ impl Item {
             title: row.get(4),
             description: row.get(5),
             value: row.get(6),
-            min_bid: row.get(7),
-            date_created: row.get(8),
-            date_modified: row.get(9),
+            starting: row.get(7),
+            min_bid: row.get(8),
+            date_created: row.get(9),
+            date_modified: row.get(10),
         }
     }
 }
@@ -386,27 +388,28 @@ pub struct NewItem {
     pub title: String,
     pub description: String,
     pub value: i64,
+    pub starting: i64,
     pub min_bid: i64,
 }
 impl NewItem {
     pub fn new(org_id: i32, is_goal: bool, title: &str, desc: &str,
-               value: i64, min_bid: i64) -> NewItem {
+               value: i64, starting: i64, min_bid: i64) -> NewItem {
         NewItem {
             organization_id: org_id, is_goal: is_goal, title: title.into(),
-            description: desc.into(), value: value, min_bid: min_bid,
-            owning_bidder_id: None,
+            description: desc.into(), value: value, starting: starting,
+            min_bid: min_bid, owning_bidder_id: None,
         }
     }
     pub fn create(self, conn: &Connection) -> Result<Item> {
-        let qs = "insert into items (organization_id, is_goal, title, description, value, min_bid, owning_bidder_id) \
-                  values ($1, $2, $3, $4, $5, $6, $7) returning id, date_created, date_modified";
+        let qs = "insert into items (organization_id, is_goal, title, description, value, starting, min_bid, owning_bidder_id) \
+                  values ($1, $2, $3, $4, $5, $6, $7, $8) returning id, date_created, date_modified";
         try_insert_to_model!(conn.query(qs, &[&self.organization_id, &self.is_goal, &self.title,
-                                              &self.description, &self.value, &self.min_bid, &self.owning_bidder_id]) ;
+                                              &self.description, &self.value, &self.starting, &self.min_bid, &self.owning_bidder_id]) ;
                              Item ;
                              id: 0, date_created: 1, date_modified: 2 ;
                              organization_id: self.organization_id, is_goal:self.is_goal, title: self.title,
-                             description: self.description, value: self.value, min_bid: self.min_bid,
-                             owning_bidder_id: self.owning_bidder_id)
+                             description: self.description, value: self.value, starting: self.starting,
+                             min_bid: self.min_bid, owning_bidder_id: self.owning_bidder_id)
     }
 }
 

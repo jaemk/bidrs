@@ -13,7 +13,8 @@
 
             [client.navigation :as navigation]
             [client.common :as common :refer [v-or-blank]]
-            [client.auth :as auth]))
+            [client.auth :as auth]
+            [client.browse :as browse]))
 
 (enable-console-print!)
 
@@ -137,7 +138,7 @@
 
 (defn browse [state]
   [common/paper-rounded
-   [:div "Browsing!"]])
+   [browse/items state]])
 
 (defn home [state]
   "Main content"

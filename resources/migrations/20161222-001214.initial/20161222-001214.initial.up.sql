@@ -9,7 +9,7 @@ create table auth (
 
 create table users (
     id            serial PRIMARY KEY,
-    auth_id       integer NOT NULL UNIQUE REFERENCES "auth" ("id"),
+    auth_id       integer NOT NULL UNIQUE REFERENCES "auth" ("id") ON DELETE CASCADE,
     email         text UNIQUE NOT NULL,
     uuid_         uuid UNIQUE NOT NULL,
     level_        integer NOT NULL CHECK (level_ >= 0),
@@ -23,7 +23,7 @@ create unique index on users (email);
 create table organizations (
     id            serial PRIMARY KEY,
     name          varchar(255) UNIQUE NOT NULL,
-    extra         json,
+    extra         jsonb,
     date_created  timestamp WITH TIME ZONE NOT NULL DEFAULT NOW(),
     date_modified timestamp WITH TIME ZONE NOT NULL DEFAULT NOW()
 );
@@ -31,7 +31,7 @@ create table organizations (
 
 create table bidders (
     id              serial PRIMARY KEY,
-    organization_id integer NOT NULL REFERENCES "organizations" ("id"),
+    organization_id integer NOT NULL REFERENCES "organizations" ("id") ON DELETE SET NULL,
     id_name         text NOT NULL,
     date_created    timestamp WITH TIME ZONE NOT NULL DEFAULT NOW(),
     date_modified   timestamp WITH TIME ZONE NOT NULL DEFAULT NOW()
@@ -51,12 +51,12 @@ create table payment_information (
 create table profiles (
     id              serial PRIMARY KEY,
     user_id         integer NOT NULL UNIQUE REFERENCES "users" ("id") ON DELETE CASCADE,
-    bidder_id       integer REFERENCES "bidders" ("id"),
-    payment_info_id integer REFERENCES "payment_information" ("id"),
+    bidder_id       integer REFERENCES "bidders" ("id") ON DELETE SET NULL,
+    payment_info_id integer REFERENCES "payment_information" ("id") ON DELETE SET NULL,
     is_primary      boolean DEFAULT FALSE,
     name            text,
     phone           text,
-    extra           json,
+    extra           jsonb,
     date_created    timestamp WITH TIME ZONE NOT NULL DEFAULT NOW(),
     date_modified   timestamp WITH TIME ZONE NOT NULL DEFAULT NOW()
 );
@@ -66,8 +66,8 @@ create unique index on profiles ((user_id));
 
 create table items (
     id               serial PRIMARY KEY,
-    organization_id  integer NOT NULL REFERENCES "organizations" ("id"),
-    owning_bidder_id integer REFERENCES "bidders" ("id"),
+    organization_id  integer NOT NULL REFERENCES "organizations" ("id") ON DELETE SET NULL,
+    owning_bidder_id integer REFERENCES "bidders" ("id") ON DELETE SET NULL,
     is_goal          boolean DEFAULT FALSE,
     title            text,
     description      text,
@@ -81,8 +81,8 @@ create index on items ((lower(title)));
 
 create table bids (
     id            serial PRIMARY KEY,
-    bidder_id     integer NOT NULL REFERENCES "bidders" ("id"),
-    item_id       integer NOT NULL REFERENCES "items" ("id"),
+    bidder_id     integer NOT NULL REFERENCES "bidders" ("id") ON DELETE SET NULL,
+    item_id       integer NOT NULL REFERENCES "items" ("id") ON DELETE SET NULL,
     amount        bigint NOT NULL,
     date_created  timestamp WITH TIME ZONE NOT NULL DEFAULT NOW(),
     date_modified timestamp WITH TIME ZONE NOT NULL DEFAULT NOW()

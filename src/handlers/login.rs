@@ -36,7 +36,6 @@ impl Handler for LoginHandler {
         // get post info
         let mut req_body = String::new();
         request.body.read_to_string(&mut req_body).unwrap();
-        println!("{:?}", req_body);
         let auth_info: ApiAuth = try_server_error!(json::decode(&req_body));
 
         // look for user by email
@@ -45,7 +44,6 @@ impl Handler for LoginHandler {
             Some(u) => u,
             None => return unauthorized(None),
         };
-
         let user_auth = models::Auth::get(&conn, &user.auth_id).unwrap();
 
         // hash the provided password with the found-user's salt

@@ -14,11 +14,11 @@ pub type SStore = Arc<Mutex<SessionStore>>;
 
 // handler defs
 mod hello;
-mod login;
 mod info;
-//mod logout;
-//mod msg;
-//mod users;
+mod login;
+mod logout;
+
+mod items;
 
 
 /// handler prelude of imports needed by handlers, so handler mods
@@ -43,7 +43,7 @@ mod prelude {
     pub use super::SStore;
 
     #[derive(Debug, RustcEncodable)]
-    pub struct Msg { msg: String }
+    pub struct Msg { pub msg: String }
 
     /// Return an unauthorized response, optionally specify the message
     pub fn unauthorized(message: Option<String>) -> IronResult<Response> {
@@ -61,23 +61,19 @@ mod prelude {
 /// Initializes all handlers with any external resources they need
 pub struct Handlers {
     pub hello: hello::HelloHandler,
-    pub login: login::LoginHandler,
     pub info: info::InfoHandler,
-    //pub logout: logout::LogoutHandler,
-    //pub users: users::UsersHandler,
-    //pub post_msg: msg::PostMsgHandler,
-    //pub get_msg: msg::GetMsgHandler,
+    pub login: login::LoginHandler,
+    pub logout: logout::LogoutHandler,
+    pub items: items::ItemsHandler,
 }
 impl Handlers {
     pub fn new(db_pool: PgPool, s_store: SStore) -> Handlers {
         Handlers {
             hello: hello::HelloHandler::new(),
-            login: login::LoginHandler::new(db_pool.clone(), s_store.clone()),
             info: info::InfoHandler::new(db_pool.clone(), s_store.clone()),
-            //post_msg: msg::PostMsgHandler::new(),
-            //get_msg: msg::GetMsgHandler::new(),
-            //logout: logout::LogoutHandler::new(s_store.clone()),
-            //users: users::UsersHandler::new(db_pool.clone()),
+            login: login::LoginHandler::new(db_pool.clone(), s_store.clone()),
+            logout: logout::LogoutHandler::new(s_store.clone()),
+            items: items::ItemsHandler::new(db_pool.clone(), s_store.clone()),
         }
     }
 }

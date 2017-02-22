@@ -36,3 +36,10 @@ pub fn select_profile_by_name(conn: &Connection, name: &str) -> Option<Profile> 
 }
 
 
+pub fn filter_items_for_user_by_uuid(conn: &Connection, user_uuid: &Uuid) -> Vec<Item> {
+    let qs = "select * from items where organization_id in \
+              (select organization_id from bidders where id in \
+               (select bidder_id from profiles where user_id in \
+                (select id from users where uuid_=$1)))";
+    query_coll!(conn.query(qs, &[&user_uuid]), Item)
+}

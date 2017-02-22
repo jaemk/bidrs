@@ -78,10 +78,13 @@ pub fn start(host: &str, quiet: bool) {
     }
     chain.link_around(session_middleware);  // custom session middleware
 
+    dotenv().ok();
+    let static_dir = env::var("STATIC_DIR").expect("STATIC_DIR must be set");
+    println!("{:?}", Path::new(&static_dir));
     let mut mount = Mount::new();
     mount
         .mount("/", chain)
-        .mount("/static/", Static::new(Path::new("static")));
+        .mount("/static/", Static::new(Path::new(&static_dir)));
 
     println!(">> Serving at {}", host);
     if quiet { println!(">> ... quietly") }

@@ -129,8 +129,13 @@ impl SessionStore {
         }
     }
 
+    /// Returns a reference to the session corresponding to the given token
+    pub fn get(&self, token: &str) -> Option<&Session> {
+        self.store.get(token)
+    }
+
     /// Returns a mutable reference to the session corresponding to the token.
-    pub fn get_mut(&mut self, token: &String) -> Option<&mut Session> {
+    pub fn get_mut(&mut self, token: &str) -> Option<&mut Session> {
         self.store.get_mut(token)
     }
 
@@ -141,6 +146,13 @@ impl SessionStore {
             Some(token) => self.get_mut(token),
             None => None,
         }
+    }
+
+    /// Return the user.uuid associated with this request session
+    pub fn get_uuid_from_request(&mut self, request: &Request) -> Option<&Uuid> {
+        request.headers.get::<Authorization<String>>()
+            .and_then(move |token| self.get(token))
+            .map(|session| &session.user_uuid)
     }
 
     /// Delete from the SessionStore the Session associated with the given

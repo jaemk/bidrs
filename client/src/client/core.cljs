@@ -31,8 +31,12 @@
    :nav {:title "Bidrs"
          :open false
          :page :home
-         :goto nil  ; fn
+         :goto nil        ; fn
          }
+   :items nil
+   :refresh {:browse nil  ; fn
+             :home nil    ; fn
+             }
    :toast {:msg nil}
    :msg nil}))
 
@@ -77,6 +81,11 @@
              :handler handler
              :error-handler err-handler}))
 
+(defn fetch-items []
+  (api-get :url "/items"
+           :handler (fn [resp]
+                      (println resp)
+                      (swap! state assoc :items (:items resp)))))
 
 (defn page->title [page]
   (get {:home "Home"
@@ -92,12 +101,14 @@
   (swap! state assoc-in [:nav :page] page)
   (secretary/dispatch! (page->uri page)))
 
-;; shove thing into the global r/atom
+;; shove functions into the global r/atom
 (def forwards
   [[[:api :set-token!] set-api-token!]
    [[:api :get] api-get]
    [[:api :post] api-post]
-   [[:nav :goto] goto-page]])
+   [[:nav :goto] goto-page]
+   [[:refresh :browse] fetch-items]
+   [[:refresh :home] #(println "refreshing home")]])
 (doseq [[ks v] forwards]
   (swap! state assoc-in ks v))
 

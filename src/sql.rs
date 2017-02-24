@@ -10,6 +10,11 @@ pub fn select_user_by_email(conn: &Connection, email: &str) -> Option<User> {
     query_or_none!(conn.query(qs, &[&email]), User)
 }
 
+pub fn get_user(conn: &Connection, id: i32) -> Option<User> {
+    let qs = "select * from users where id=$1";
+    query_or_none!(conn.query(qs, &[&id]), User)
+}
+
 pub fn select_user_by_uuid(conn: &Connection, uuid_: &Uuid) -> Option<User> {
     let qs = "select * from users where uuid_=$1 limit 1";
     query_or_none!(conn.query(qs, &[&uuid_]), User)
@@ -36,10 +41,9 @@ pub fn select_profile_by_name(conn: &Connection, name: &str) -> Option<Profile> 
 }
 
 
-pub fn filter_items_for_user_by_uuid(conn: &Connection, user_uuid: &Uuid) -> Vec<Item> {
+pub fn filter_items_for_user(conn: &Connection, user_id: i32) -> Vec<Item> {
     let qs = "select * from items where organization_id in \
               (select organization_id from bidders where id in \
-               (select bidder_id from profiles where user_id in \
-                (select id from users where uuid_=$1)))";
-    query_coll!(conn.query(qs, &[&user_uuid]), Item)
+               (select bidder_id from profiles where user_id=$1))";
+    query_coll!(conn.query(qs, &[&user_id]), Item)
 }

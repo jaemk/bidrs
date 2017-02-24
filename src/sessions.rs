@@ -11,15 +11,21 @@ use std::time;
 use uuid::Uuid;
 use chrono;
 use jwt::{encode, Header};
+use postgres::Connection;
+use json::JsonValue;
 use iron::Request;
 use iron::headers::Authorization;
 use iron::typemap;
+
+use models::User;
+use auth::new_salt;
+use sql;
 
 
 #[derive(RustcEncodable, RustcDecodable)]
 /// Token json web token generation
 struct Claim {
-    user_uuid: String,
+    salt: Vec<u8>,
 }
 lazy_static! {
     // generate a new session-secret each time the server starts up
@@ -27,8 +33,9 @@ lazy_static! {
     static ref SESSION_SECRET: String = Uuid::new_v4().to_string();
 }
 /// generate a new jwt token for auth/session tokens
-fn generate_token(uuid: String) -> Result<String, String> {
-    let claim = Claim { user_uuid: uuid };
+fn generate_token() -> Result<String, String> {
+    let salt = new_salt().unwrap();
+    let claim = Claim { salt: salt };
     match encode(Header::default(), &claim, SESSION_SECRET.as_bytes()) {
         Ok(t) => Ok(t),
         Err(_) => Err("failed to generate a token".to_string()),
@@ -50,19 +57,23 @@ impl typemap::Key for SessionKey {
 /// User Session token and information
 pub struct Session {
     pub token: String,
-    pub user_uuid: Uuid,
-    data: String,
+    pub user_id: Option<i32>,
+    pub data: JsonValue,
     pub stamp: chrono::DateTime<chrono::UTC>,
 }
 impl Session {
-    pub fn new(uuid: &Uuid) -> Session {
-        let token = generate_token(uuid.to_string()).expect("token fail");
+    pub fn new() -> Session {
+        let token = generate_token().expect("token fail");
         Session {
             token: token,
-            user_uuid: uuid.clone(),
-            data: "".to_string(),
+            user_id: None,
+            data: object!{},
             stamp: chrono::UTC::now(),
         }
+    }
+    pub fn with_user(mut self, user_id: i32) -> Session {
+        self.user_id = Some(user_id);
+        self
     }
     pub fn expired(&self, life: chrono::Duration) -> bool {
         chrono::UTC::now() - self.stamp > life
@@ -149,10 +160,15 @@ impl SessionStore {
     }
 
     /// Return the user.uuid associated with this request session
-    pub fn get_uuid_from_request(&mut self, request: &Request) -> Option<&Uuid> {
+    pub fn get_user_id_from_request(&self, request: &Request) -> Option<i32> {
         request.headers.get::<Authorization<String>>()
             .and_then(move |token| self.get(token))
-            .map(|session| &session.user_uuid)
+            .map(|session| session.user_id.unwrap())
+    }
+
+    pub fn get_user_from_request(&self, conn: &Connection, request: &Request) -> Option<User> {
+        self.get_user_id_from_request(request)
+            .and_then(|id| sql::get_user(conn, id))
     }
 
     /// Delete from the SessionStore the Session associated with the given

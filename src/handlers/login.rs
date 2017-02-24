@@ -57,7 +57,7 @@ impl Handler for LoginHandler {
         }
 
         // auth was successful, initialize a new session
-        let new_sess = Session::new(&user.uuid_);
+        let new_sess = Session::new().with_user(user.id);
         let is_admin = user.level_ > 9;
         let resp = AuthSuccess {
             token: new_sess.token.clone(),

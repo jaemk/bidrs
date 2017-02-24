@@ -54,7 +54,7 @@ impl<H: Handler> Handler for SessionMiddlewareHandler<H> {
                     _ => false,
                 };
                 if !valid {
-                    return Ok(Response::with((status::Unauthorized, "please login")))
+                    return Ok(Response::with((status::Unauthorized, "unauthorized")))
                 }
             }
         }

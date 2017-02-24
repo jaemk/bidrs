@@ -4,8 +4,8 @@ extern crate chrono;
 extern crate uuid;
 
 extern crate rustc_serialize;
-//#[macro_use]
-//extern crate json;
+#[macro_use]
+extern crate json;
 
 extern crate jsonwebtoken as jwt;
 

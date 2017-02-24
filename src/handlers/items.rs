@@ -18,11 +18,11 @@ impl ItemsHandler {
 }
 impl Handler for ItemsHandler {
     fn handle(&self, request: &mut Request) -> IronResult<Response> {
-        let mut store = self.s_store.lock().unwrap();
-        let user_uuid = store.get_uuid_from_request(&request).unwrap();
-
         let conn = self.db_pool.get().unwrap();
-        let items = sql::filter_items_for_user_by_uuid(&conn, &user_uuid);
+        let store = self.s_store.lock().unwrap();
+        let user = store.get_user_from_request(&conn, &request).unwrap();
+
+        let items = sql::filter_items_for_user(&conn, user.id);
         let items = Items { items: items };
         Ok(Response::with((status::Ok, json::encode(&items).unwrap())))
     }

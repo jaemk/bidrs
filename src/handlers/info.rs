@@ -32,9 +32,9 @@ impl Handler for InfoHandler {
         let mut store = self.store.lock().unwrap();
         let session = store.get_mut_from_request(&request);
 
-        let uuid = session.unwrap().user_uuid;
+        let id = session.and_then(|sess| sess.user_id).unwrap();
         let conn = self.pool.get().unwrap();
-        let user = sql::select_user_by_uuid(&conn, &uuid).unwrap();
+        let user = sql::get_user(&conn, id).unwrap();
         let profile = sql::select_profile_by_user(&conn, &user.id).unwrap();
 
         let info = Info {
